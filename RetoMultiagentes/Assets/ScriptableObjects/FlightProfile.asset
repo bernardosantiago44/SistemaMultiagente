@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f1ightprofi1e123456789abcdef012345, type: 3}
+  m_Name: FlightProfile
+  massKg: 1.2
+  maxTiltDeg: 25
+  maxClimbRate: 3
+  maxDescentRate: 2
+  lateralAccel: 8
+  yawRateDeg: 90
+  targetAltitude: 20
+  altitudeKp: 1
+  altitudeKi: 0.1
+  altitudeKd: 0.5
+  maxVerticalThrust: 20
+  targetSpeed: 10
+  velocityKp: 1
+  velocityKi: 0.1
+  velocityKd: 0.5
+  maxForwardThrust: 15
