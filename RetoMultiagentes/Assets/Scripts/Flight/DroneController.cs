@@ -37,6 +37,10 @@ public class DroneController : MonoBehaviour
     private Vector3 bodyAccelCmd = Vector3.zero; // m/s^2 en marco mundo
     private float lastGroundHeight = 0f;
 
+    // --- PID Controllers for Issue #8 ---
+    private AltitudeHold altitudeController;
+    private VelocityController velocityController;
+
     // --- Eventos (stubs para integrar luego) ---
     public System.Action OnArmed;
     public System.Action OnDisarmed;
@@ -72,6 +76,17 @@ public class DroneController : MonoBehaviour
         // Inicializar thrust para sostener el dron
         float g = Physics.gravity.magnitude;
         thrustCmd = massKg * g;
+
+        // Initialize PID controllers for Issue #8
+        if (flightProfile != null)
+        {
+            altitudeController = new AltitudeHold(flightProfile);
+            velocityController = new VelocityController(flightProfile);
+        }
+        else
+        {
+            Debug.LogWarning("[DroneController] FlightProfile is null - PID controllers not initialized");
+        }
     }
 
     void Update()
@@ -117,9 +132,8 @@ public class DroneController : MonoBehaviour
 
         Vector3 currentPos = transform.position;
         Vector3 direction = (targetPosition - currentPos).normalized;
-        float distance = Vector3.Distance(currentPos, targetPosition);
 
-        // Simple proportional control for horizontal movement
+        // Calculate horizontal movement using velocity controller
         float horizontalDistance = Vector3.Distance(
             new Vector3(currentPos.x, 0, currentPos.z), 
             new Vector3(targetPosition.x, 0, targetPosition.z)
@@ -128,26 +142,56 @@ public class DroneController : MonoBehaviour
         if (horizontalDistance > 0.5f) // Dead zone
         {
             Vector3 horizontalDirection = new Vector3(direction.x, 0, direction.z).normalized;
-            bodyAccelCmd = horizontalDirection * Mathf.Min(lateralAccel, horizontalDistance * 2f);
+            
+            // Get current horizontal speed
+            Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+            float currentSpeed = horizontalVelocity.magnitude;
+            
+            // Use velocity controller if available
+            if (velocityController != null && flightProfile != null)
+            {
+                float forwardThrust = velocityController.GetForwardThrust(currentSpeed);
+                bodyAccelCmd = horizontalDirection * (forwardThrust / massKg);
+            }
+            else
+            {
+                // Fallback to simple proportional control
+                bodyAccelCmd = horizontalDirection * Mathf.Min(lateralAccel, horizontalDistance * 2f);
+            }
         }
         else
         {
             bodyAccelCmd = Vector3.zero;
         }
 
-        // Simple altitude control
-        float altitudeError = targetPosition.y - currentPos.y;
-        float g = Physics.gravity.magnitude;
-        float hoverThrust = massKg * g;
-        
-        if (Mathf.Abs(altitudeError) > 0.5f) // Dead zone
+        // Use altitude controller for vertical control
+        if (altitudeController != null && flightProfile != null)
         {
-            float climbCmd = Mathf.Clamp(altitudeError * 0.5f, -maxDescentRate, maxClimbRate);
-            thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbCmd);
+            // Update target altitude from flight profile
+            if (flightProfile.targetAltitude != targetAltitude)
+            {
+                flightProfile.targetAltitude = targetPosition.y;
+            }
+            
+            float currentAltitude = transform.position.y;
+            thrustCmd = altitudeController.GetVerticalThrust(currentAltitude);
         }
         else
         {
-            thrustCmd = hoverThrust;
+            // Fallback to simple altitude control
+            float altitudeError = targetPosition.y - currentPos.y;
+            float g = Physics.gravity.magnitude;
+            float hoverThrust = massKg * g;
+            
+            if (Mathf.Abs(altitudeError) > 0.5f) // Dead zone
+            {
+                float climbCmd = Mathf.Clamp(altitudeError * 0.5f, -maxDescentRate, maxClimbRate);
+                thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbCmd);
+            }
+            else
+            {
+                thrustCmd = hoverThrust;
+            }
         }
     }
 
@@ -239,7 +283,15 @@ public class DroneController : MonoBehaviour
     {
         targetAltitude = targetAltMeters;
         inFlight = true;
-        // TODO: Issue #8 implementará control de altitud con PID
+        
+        // Update target altitude in flight profile if available
+        if (flightProfile != null)
+        {
+            flightProfile.targetAltitude = targetAltMeters;
+        }
+        
+        // Reset PID controllers for clean takeoff
+        ResetPIDControllers();
     }
 
     public void LandAt(Vector3 worldPos, float radius = 2f)
@@ -290,6 +342,32 @@ public class DroneController : MonoBehaviour
     public bool IsArmed() => armed;
     public bool InFlight() => inFlight;
 
+    // --- PID Controller telemetry for Issue #8 ---
+    public float GetAltitudeError()
+    {
+        if (altitudeController != null)
+            return altitudeController.GetCurrentError(transform.position.y);
+        return 0f;
+    }
+
+    public float GetVelocityError()
+    {
+        if (velocityController != null)
+        {
+            Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+            return velocityController.GetCurrentError(horizontalVelocity.magnitude);
+        }
+        return 0f;
+    }
+
+    public void ResetPIDControllers()
+    {
+        if (altitudeController != null)
+            altitudeController.Reset();
+        if (velocityController != null)
+            velocityController.Reset();
+    }
+
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
@@ -302,14 +380,4 @@ public class DroneController : MonoBehaviour
 #endif
 }
 
-// ScriptableObject sugerido para Issue #8/#19
-[CreateAssetMenu(fileName = "FlightProfile", menuName = "MAV/FlightProfile")]
-public class FlightProfile : ScriptableObject
-{
-    public float massKg = 1.2f;
-    public float maxTiltDeg = 25f;
-    public float maxClimbRate = 3.0f;
-    public float maxDescentRate = 2.0f;
-    public float lateralAccel = 8.0f;
-    public float yawRateDeg = 90f;
-}
+
