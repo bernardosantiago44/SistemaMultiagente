@@ -167,8 +167,8 @@ public class DroneController : MonoBehaviour
         // Use altitude controller for vertical control
         if (altitudeController != null && flightProfile != null)
         {
-            // Update target altitude from flight profile
-            if (flightProfile.targetAltitude != targetAltitude)
+            // Ensure target altitude in flight profile matches our target position
+            if (flightProfile.targetAltitude != targetPosition.y)
             {
                 flightProfile.targetAltitude = targetPosition.y;
             }
@@ -306,6 +306,12 @@ public class DroneController : MonoBehaviour
         
         // Set target altitude from the world position
         targetAltitude = worldPos.y;
+        
+        // Update target altitude in flight profile if available
+        if (flightProfile != null)
+        {
+            flightProfile.targetAltitude = worldPos.y;
+        }
         
         Debug.Log($"[DroneController] Target set to: {worldPos}");
     }
