@@ -9,8 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f1ightprofi1e123456789abcdef012345, type: 3}
+  m_Script: {fileID: 11500000, guid: a6f6577cd48134a4aab15c0a3b8ea8c3, type: 3}
   m_Name: FlightProfile
+  m_EditorClassIdentifier: 
   massKg: 1.2
   maxTiltDeg: 25
   maxClimbRate: 3
