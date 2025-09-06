@@ -14,6 +14,7 @@ public class MissionManager : MonoBehaviour
     [Header("Debug")]
     [SerializeField] private bool loadOnStart = true;
     [SerializeField] private bool logToConsole = true;
+    [SerializeField] private bool verboseLogging = false;
     
     void Start()
     {
@@ -30,12 +31,44 @@ public class MissionManager : MonoBehaviour
     {
         try
         {
-            string fullPath = Path.Combine(Application.dataPath, "..", missionJsonPath);
+            // Try different path strategies for Unity
+            string fullPath;
+            
+            // Strategy 1: Relative to project root
+            fullPath = Path.Combine(Application.dataPath, "..", missionJsonPath);
+            
+            // Strategy 2: If first doesn't work, try relative to Assets folder
+            if (!File.Exists(fullPath))
+            {
+                string assetPath = missionJsonPath.Replace("Assets/", "");
+                fullPath = Path.Combine(Application.dataPath, assetPath);
+            }
+            
+            // Strategy 3: Direct path in streaming assets (for builds)
+            if (!File.Exists(fullPath))
+            {
+                fullPath = Path.Combine(Application.streamingAssetsPath, "sample_mission.json");
+            }
             
             if (!File.Exists(fullPath))
             {
-                Debug.LogError($"Mission file not found at: {fullPath}");
+                if (verboseLogging)
+                {
+                    Debug.LogError($"Mission file not found. Tried paths:");
+                    Debug.LogError($"  1. {Path.Combine(Application.dataPath, "..", missionJsonPath)}");
+                    Debug.LogError($"  2. {Path.Combine(Application.dataPath, missionJsonPath.Replace("Assets/", ""))}");
+                    Debug.LogError($"  3. {Path.Combine(Application.streamingAssetsPath, "sample_mission.json")}");
+                }
+                else
+                {
+                    Debug.LogError($"Mission file not found at any expected location. Enable 'Verbose Logging' for details.");
+                }
                 return;
+            }
+            
+            if (verboseLogging)
+            {
+                Debug.Log($"Loading mission from: {fullPath}");
             }
             
             string jsonContent = File.ReadAllText(fullPath);
