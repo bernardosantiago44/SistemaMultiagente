@@ -206,64 +206,57 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
   m_PrefabInstance: {fileID: 22191965}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &22191967 stripped
+--- !u!1 &57571305
 GameObject:
-  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
-  m_PrefabInstance: {fileID: 22191965}
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &22191968
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 57571307}
+  - component: {fileID: 57571306}
+  m_Layer: 0
+  m_Name: MissionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &57571306
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 22191967}
+  m_GameObject: {fileID: 57571305}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8e64d999d0b1349688af49523f836fd9, type: 3}
+  m_Script: {fileID: 11500000, guid: d4e5f67890123456789012345abcdef0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rb: {fileID: 22191969}
-  centerOfMass: {fileID: 0}
-  flightProfile: {fileID: 0}
-  armed: 1
-  debugManualInput: 1
-  targetForwardSpeed: 10
-  targetAltitude: 1.5
-  targetYawDeg: 0
-  massKg: 0.3
-  maxTiltDeg: 25
-  maxClimbRate: 8
-  maxDescentRate: 2
-  lateralAccel: 0
-  yawRateDeg: 90
---- !u!54 &22191969
-Rigidbody:
+  missionJsonPath: Assets/Config/sample_mission.json
+  currentMission:
+    description: 
+    gpsCoordinates: {x: 0, y: 0}
+  loadOnStart: 1
+  logToConsole: 1
+  verboseLogging: 0
+--- !u!4 &57571307
+Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 22191967}
-  serializedVersion: 4
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_CenterOfMass: {x: 0, y: 0, z: 0}
-  m_InertiaTensor: {x: 1, y: 1, z: 1}
-  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ImplicitCom: 1
-  m_ImplicitTensor: 1
-  m_UseGravity: 1
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
+  m_GameObject: {fileID: 57571305}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -32.547867, y: -48.763084, z: 18.463684}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &128637935
 GameObject:
   m_ObjectHideFlags: 0
@@ -522,6 +515,52 @@ Transform:
   m_Children: []
   m_Father: {fileID: 22191966}
   m_LocalEulerAnglesHint: {x: -194.922, y: 0, z: -180}
+--- !u!1 &1328812732
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1328812734}
+  - component: {fileID: 1328812733}
+  m_Layer: 0
+  m_Name: MissionDemo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1328812733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328812732}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 789012345678901234abcdef01234567, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  autoLoadOnStart: 1
+  missionManager: {fileID: 57571306}
+--- !u!4 &1328812734
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1328812732}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -32.547867, y: -48.763084, z: 18.463684}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1562895167
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -680,3 +719,5 @@ SceneRoots:
   - {fileID: 2053574898}
   - {fileID: 22191965}
   - {fileID: 1562895167}
+  - {fileID: 57571307}
+  - {fileID: 1328812734}
