@@ -18,7 +18,7 @@ public class MissionDemo : MonoBehaviour
         // If no mission manager is assigned, try to find one
         if (missionManager == null)
         {
-            missionManager = FindObjectOfType<MissionManager>();
+            missionManager = FindFirstObjectByType<MissionManager>();
         }
         
         // Create a mission manager if none exists

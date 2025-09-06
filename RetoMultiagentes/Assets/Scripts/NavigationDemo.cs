@@ -27,9 +27,9 @@ public class NavigationDemo : MonoBehaviour
     void Start()
     {
         // Find components if not assigned
-        if (navigator == null) navigator = FindObjectOfType<Navigator>();
-        if (droneController == null) droneController = FindObjectOfType<DroneController>();
-        if (waypointQueue == null) waypointQueue = FindObjectOfType<WaypointQueue>();
+    if (navigator == null) navigator = FindFirstObjectByType<Navigator>();
+    if (droneController == null) droneController = FindFirstObjectByType<DroneController>();
+    if (waypointQueue == null) waypointQueue = FindFirstObjectByType<WaypointQueue>();
         
         // Set GPS origin
         if (navigator != null)

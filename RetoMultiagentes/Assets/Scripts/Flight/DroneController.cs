@@ -17,9 +17,9 @@ public class DroneController : MonoBehaviour
 
     // --- Consignas (se usarán en issues posteriores) ---
     [Header("Setpoints")]
-    [SerializeField, Tooltip("m/s")] private float targetForwardSpeed = 0f;
+    // [SerializeField, Tooltip("m/s")] private float targetForwardSpeed = 0f;
     [SerializeField, Tooltip("m")] private float targetAltitude = 1.5f;
-    [SerializeField, Tooltip("deg")] private float targetYawDeg = 0f;
+    // [SerializeField, Tooltip("deg")] private float targetYawDeg = 0f;
     [SerializeField] private Vector3 targetPosition = Vector3.zero;
     [SerializeField] private bool hasTargetPosition = false;
 

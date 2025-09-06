@@ -15,12 +15,12 @@ public class Navigator : MonoBehaviour
     [Header("Navigation Configuration")]
     [SerializeField] private float minimumDistance = 150f; // meters - requirement from issue
     [SerializeField] private float targetReachThreshold = 5.0f; // meters
-    [SerializeField] private float navigationSpeed = 10f; // m/s
+    //[SerializeField] private float navigationSpeed = 10f; // m/s
     [SerializeField] private float targetAltitude = 50f; // meters AGL
     
     [Header("GPS Configuration")]
     [SerializeField] private Vector2 gpsOrigin = new Vector2(19.432608f, -99.133209f); // Default Mexico City coordinates
-    [SerializeField] private bool useGpsCoordinates = true;
+    //[SerializeField] private bool useGpsCoordinates = true;
     
     [Header("Navigation State")]
     [SerializeField] private bool isNavigating = false;

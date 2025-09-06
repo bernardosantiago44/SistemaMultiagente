@@ -111,7 +111,7 @@ public class MissionTest : MonoBehaviour
         }";
         
         // Find MissionManager in scene
-        MissionManager missionManager = FindObjectOfType<MissionManager>();
+        MissionManager missionManager = FindFirstObjectByType<MissionManager>();
         if (missionManager != null)
         {
             missionManager.LoadMissionFromJsonString(validJson);

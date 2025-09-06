@@ -96,17 +96,17 @@ public class NavigationTest : MonoBehaviour
         
         if (navigator == null)
         {
-            navigator = FindObjectOfType<Navigator>();
+            navigator = FindFirstObjectByType<Navigator>();
         }
         
         if (droneController == null)
         {
-            droneController = FindObjectOfType<DroneController>();
+            droneController = FindFirstObjectByType<DroneController>();
         }
         
         if (waypointQueue == null)
         {
-            waypointQueue = FindObjectOfType<WaypointQueue>();
+            waypointQueue = FindFirstObjectByType<WaypointQueue>();
         }
         
         Debug.Log($"Navigator found: {navigator != null}");
