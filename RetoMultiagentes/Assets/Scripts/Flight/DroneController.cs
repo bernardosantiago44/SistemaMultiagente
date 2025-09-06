@@ -16,10 +16,12 @@ public class DroneController : MonoBehaviour
     private bool inFlight = false;
 
     // --- Consignas (se usarán en issues posteriores) ---
-    [Header("Setpoints (future)")]
-    [SerializeField, Tooltip("m/s")] private float targetForwardSpeed = 0f;
+    [Header("Setpoints")]
+    // [SerializeField, Tooltip("m/s")] private float targetForwardSpeed = 0f;
     [SerializeField, Tooltip("m")] private float targetAltitude = 1.5f;
-    [SerializeField, Tooltip("deg")] private float targetYawDeg = 0f;
+    // [SerializeField, Tooltip("deg")] private float targetYawDeg = 0f;
+    [SerializeField] private Vector3 targetPosition = Vector3.zero;
+    [SerializeField] private bool hasTargetPosition = false;
 
     // --- Parámetros básicos (fallback si no hay FlightProfile) ---
     [Header("Fallback Params")]
@@ -74,9 +76,23 @@ public class DroneController : MonoBehaviour
 
     void Update()
     {
-        // Entrada manual (debug) SOLO para Issue #4
-        if (!armed || !debugManualInput) return;
+        if (!armed) return;
 
+        // Choose between manual control and automatic navigation
+        if (hasTargetPosition && !debugManualInput)
+        {
+            // Automatic navigation mode
+            HandleAutomaticNavigation();
+        }
+        else if (debugManualInput)
+        {
+            // Manual control mode (debug)
+            HandleManualInput();
+        }
+    }
+
+    private void HandleManualInput()
+    {
         var inputH = HandleHorizontalInput();
         var inputV = HandleVerticalInput();
         var up = HandleUpwardInput();
@@ -93,6 +109,46 @@ public class DroneController : MonoBehaviour
         // Convertir rate deseado a delta de thrust aproximado
         float climbAccel = climbCmd; // m/s -> simplificado: 1:1 como aceleración
         thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccel);
+    }
+
+    private void HandleAutomaticNavigation()
+    {
+        if (!hasTargetPosition) return;
+
+        Vector3 currentPos = transform.position;
+        Vector3 direction = (targetPosition - currentPos).normalized;
+        float distance = Vector3.Distance(currentPos, targetPosition);
+
+        // Simple proportional control for horizontal movement
+        float horizontalDistance = Vector3.Distance(
+            new Vector3(currentPos.x, 0, currentPos.z), 
+            new Vector3(targetPosition.x, 0, targetPosition.z)
+        );
+        
+        if (horizontalDistance > 0.5f) // Dead zone
+        {
+            Vector3 horizontalDirection = new Vector3(direction.x, 0, direction.z).normalized;
+            bodyAccelCmd = horizontalDirection * Mathf.Min(lateralAccel, horizontalDistance * 2f);
+        }
+        else
+        {
+            bodyAccelCmd = Vector3.zero;
+        }
+
+        // Simple altitude control
+        float altitudeError = targetPosition.y - currentPos.y;
+        float g = Physics.gravity.magnitude;
+        float hoverThrust = massKg * g;
+        
+        if (Mathf.Abs(altitudeError) > 0.5f) // Dead zone
+        {
+            float climbCmd = Mathf.Clamp(altitudeError * 0.5f, -maxDescentRate, maxClimbRate);
+            thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbCmd);
+        }
+        else
+        {
+            thrustCmd = hoverThrust;
+        }
     }
 
     private float HandleHorizontalInput()
@@ -193,7 +249,29 @@ public class DroneController : MonoBehaviour
 
     public void GoTo(Vector3 worldPos)
     {
-        // TODO: Issue #7/#9 usará waypoints; aquí solo se registrará pose objetivo
+        targetPosition = worldPos;
+        hasTargetPosition = true;
+        
+        // Set target altitude from the world position
+        targetAltitude = worldPos.y;
+        
+        Debug.Log($"[DroneController] Target set to: {worldPos}");
+    }
+
+    public void ClearTarget()
+    {
+        hasTargetPosition = false;
+        targetPosition = Vector3.zero;
+    }
+
+    public Vector3 GetTargetPosition()
+    {
+        return targetPosition;
+    }
+
+    public bool HasTargetPosition()
+    {
+        return hasTargetPosition;
     }
 
     // --- Telemetría básica ---
