@@ -129,15 +129,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalScale.x
-      value: 194.8
+      value: 88.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalScale.y
-      value: 194.8
+      value: 88.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalScale.z
-      value: 194.8
+      value: 88.8
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalPosition.x
@@ -193,7 +193,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       insertIndex: -1
       addedObject: {fileID: 387802766}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 22191969}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 22191968}
   m_SourcePrefab: {fileID: 100100000, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
 --- !u!4 &22191966 stripped
 Transform:
