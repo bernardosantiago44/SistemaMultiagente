@@ -140,7 +140,7 @@ public class DroneController : MonoBehaviour
             if (Input.GetKey(KeyCode.E)) yawInput += 1f;
             if (Mathf.Abs(yawInput) > 0.01f)
             {
-                float yawDelta = yawRateDeg * Mathf.DeltaAngle(0, yawInput) * Mathf.Deg2Rad * Time.fixedDeltaTime;
+                float yawDelta = yawRateDeg * yawInput * Mathf.Deg2Rad * Time.fixedDeltaTime;
                 rb.MoveRotation(Quaternion.AngleAxis(yawDelta * Mathf.Rad2Deg, Vector3.up) * rb.rotation);
             }
         }
