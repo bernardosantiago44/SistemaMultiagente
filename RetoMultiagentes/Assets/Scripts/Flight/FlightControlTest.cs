@@ -29,7 +29,7 @@ public class FlightControlTest : MonoBehaviour
     void Start()
     {
         if (droneController == null)
-            droneController = FindObjectOfType<DroneController>();
+            droneController = FindFirstObjectByType<DroneController>();
         
         if (droneController != null)
         {
