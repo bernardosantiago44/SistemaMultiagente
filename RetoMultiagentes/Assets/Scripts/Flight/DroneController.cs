@@ -8,6 +8,10 @@ public class DroneController : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Transform centerOfMass;
     [SerializeField] private FlightProfile flightProfile; // ScriptableObject (Issue #8/#19)
+    
+    [Header("Sensors")]
+    [SerializeField] private RangeSensor rangeSensor; // For terrain-relative altitude control
+    [SerializeField] private bool useTerrainRelativeAltitude = false;
 
     // --- Flags / Estado ---
     [Header("State")]
@@ -80,7 +84,21 @@ public class DroneController : MonoBehaviour
         // Initialize PID controllers for Issue #8
         if (flightProfile != null)
         {
-            altitudeController = new AltitudeHold(flightProfile);
+            // Auto-find range sensor if not assigned
+            if (rangeSensor == null)
+                rangeSensor = GetComponent<RangeSensor>();
+                
+            // Initialize altitude controller with optional range sensor
+            if (rangeSensor != null && useTerrainRelativeAltitude)
+            {
+                altitudeController = new AltitudeHold(flightProfile, rangeSensor);
+                Debug.Log("[DroneController] Altitude controller initialized with range sensor for terrain-relative control");
+            }
+            else
+            {
+                altitudeController = new AltitudeHold(flightProfile);
+            }
+            
             velocityController = new VelocityController(flightProfile);
         }
         else
@@ -373,6 +391,57 @@ public class DroneController : MonoBehaviour
         if (velocityController != null)
             velocityController.Reset();
     }
+    
+    // --- Range Sensor integration for Issue #11 ---
+    /// <summary>
+    /// Set or change the range sensor used for terrain-relative altitude control
+    /// </summary>
+    public void SetRangeSensor(RangeSensor sensor)
+    {
+        rangeSensor = sensor;
+        if (altitudeController != null)
+        {
+            altitudeController.SetRangeSensor(sensor);
+        }
+    }
+    
+    /// <summary>
+    /// Enable or disable terrain-relative altitude control using the range sensor
+    /// </summary>
+    public void SetTerrainRelativeMode(bool enabled)
+    {
+        useTerrainRelativeAltitude = enabled;
+        if (altitudeController != null)
+        {
+            altitudeController.SetTerrainRelativeMode(enabled);
+        }
+    }
+    
+    /// <summary>
+    /// Get the current range sensor (if any)
+    /// </summary>
+    public RangeSensor GetRangeSensor()
+    {
+        return rangeSensor;
+    }
+    
+    /// <summary>
+    /// Check if terrain-relative altitude control is active
+    /// </summary>
+    public bool IsUsingTerrainRelativeAltitude()
+    {
+        return altitudeController != null && altitudeController.IsUsingTerrainRelativeMode();
+    }
+    
+    /// <summary>
+    /// Get the current distance to ground from range sensor (if available)
+    /// </summary>
+    public float GetRangeSensorDistance()
+    {
+        if (rangeSensor != null)
+            return rangeSensor.GetDistance();
+        return -1f; // Invalid reading
+    }
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
@@ -380,8 +449,28 @@ public class DroneController : MonoBehaviour
         // Visual debug
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(transform.position, transform.position + transform.up * 0.5f);
+        
+        // Draw AGL altitude (traditional raycast method)
         Gizmos.color = Color.yellow;
         Gizmos.DrawRay(transform.position, Vector3.down * GetAltitudeAgl());
+        
+        // Draw range sensor info if available
+        if (rangeSensor != null && Application.isPlaying)
+        {
+            float sensorDistance = rangeSensor.GetDistance();
+            if (rangeSensor.IsInRange())
+            {
+                Gizmos.color = IsUsingTerrainRelativeAltitude() ? Color.green : Color.blue;
+                Gizmos.DrawRay(transform.position, Vector3.down * sensorDistance);
+                
+                // Label for terrain-relative mode
+                if (IsUsingTerrainRelativeAltitude())
+                {
+                    Gizmos.color = Color.green;
+                    Gizmos.DrawWireCube(transform.position + Vector3.down * sensorDistance, Vector3.one * 0.2f);
+                }
+            }
+        }
     }
 #endif
 }

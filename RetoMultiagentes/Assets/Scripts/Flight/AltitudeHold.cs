@@ -7,10 +7,25 @@ public class AltitudeHold
     private float integralSum = 0f;
     private float lastTime;
     private bool initialized = false;
+    
+    // Range sensor integration for terrain-relative altitude control
+    private RangeSensor rangeSensor;
+    private bool useTerrainRelativeAltitude = false;
 
     public AltitudeHold(FlightProfile profile)
     {
         flightProfile = profile;
+        Reset();
+    }
+    
+    /// <summary>
+    /// Constructor with optional range sensor for terrain-relative altitude control
+    /// </summary>
+    public AltitudeHold(FlightProfile profile, RangeSensor rangeSensor)
+    {
+        flightProfile = profile;
+        this.rangeSensor = rangeSensor;
+        this.useTerrainRelativeAltitude = (rangeSensor != null);
         Reset();
     }
 
@@ -19,6 +34,23 @@ public class AltitudeHold
         previousError = 0f;
         integralSum = 0f;
         initialized = false;
+    }
+    
+    /// <summary>
+    /// Set or change the range sensor for terrain-relative altitude control
+    /// </summary>
+    public void SetRangeSensor(RangeSensor sensor)
+    {
+        rangeSensor = sensor;
+        useTerrainRelativeAltitude = (sensor != null);
+    }
+    
+    /// <summary>
+    /// Enable or disable terrain-relative altitude control
+    /// </summary>
+    public void SetTerrainRelativeMode(bool enabled)
+    {
+        useTerrainRelativeAltitude = enabled && (rangeSensor != null);
     }
 
     public float GetVerticalThrust(float currentAltitude)
@@ -41,8 +73,11 @@ public class AltitudeHold
         float deltaTime = currentTime - lastTime;
         if (deltaTime <= 0f) return flightProfile.massKg * Physics.gravity.magnitude;
 
+        // Determine current altitude based on mode
+        float effectiveCurrentAltitude = GetEffectiveAltitude(currentAltitude);
+        
         // Calculate error
-        float error = flightProfile.targetAltitude - currentAltitude;
+        float error = flightProfile.targetAltitude - effectiveCurrentAltitude;
 
         // Proportional term
         float proportional = flightProfile.altitudeKp * error;
@@ -79,6 +114,40 @@ public class AltitudeHold
     public float GetCurrentError(float currentAltitude)
     {
         if (flightProfile == null) return 0f;
-        return flightProfile.targetAltitude - currentAltitude;
+        float effectiveCurrentAltitude = GetEffectiveAltitude(currentAltitude);
+        return flightProfile.targetAltitude - effectiveCurrentAltitude;
+    }
+    
+    /// <summary>
+    /// Get the effective altitude based on the current mode (absolute or terrain-relative)
+    /// </summary>
+    private float GetEffectiveAltitude(float currentAltitude)
+    {
+        if (useTerrainRelativeAltitude && rangeSensor != null && rangeSensor.IsInRange())
+        {
+            // Use range sensor for terrain-relative altitude
+            return rangeSensor.GetDistance();
+        }
+        else
+        {
+            // Use absolute altitude (world Y position)
+            return currentAltitude;
+        }
+    }
+    
+    /// <summary>
+    /// Check if currently using terrain-relative altitude control
+    /// </summary>
+    public bool IsUsingTerrainRelativeMode()
+    {
+        return useTerrainRelativeAltitude && rangeSensor != null;
+    }
+    
+    /// <summary>
+    /// Get the current range sensor being used (if any)
+    /// </summary>
+    public RangeSensor GetRangeSensor()
+    {
+        return rangeSensor;
     }
 }
