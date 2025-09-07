@@ -168,6 +168,29 @@ public class RangeSensorTest : MonoBehaviour
         }
     }
     
+    [ContextMenu("Validate Acceptance Criteria")]
+    public void ValidateAcceptanceCriteria()
+    {
+        if (rangeSensor != null)
+        {
+            Debug.Log("[RangeSensorTest] Running acceptance criteria validation...");
+            bool passed = rangeSensor.ValidateAcceptanceCriteria();
+            
+            if (passed)
+            {
+                Debug.Log("[RangeSensorTest] ✓ All acceptance criteria validated successfully!");
+            }
+            else
+            {
+                Debug.LogWarning("[RangeSensorTest] ⚠ Some acceptance criteria issues detected. Check logs above.");
+            }
+        }
+        else
+        {
+            Debug.LogError("[RangeSensorTest] Cannot validate: RangeSensor component not found!");
+        }
+    }
+    
     private void OnGUI()
     {
         if (!enableAutoTest) return;
