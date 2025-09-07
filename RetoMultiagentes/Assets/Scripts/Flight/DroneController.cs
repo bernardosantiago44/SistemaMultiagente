@@ -31,7 +31,7 @@ public class DroneController : MonoBehaviour
     [Header("Fallback Params")]
     [SerializeField] private float massKg = 1.2f;
     [SerializeField] private float maxTiltDeg = 25f;
-    [SerializeField] private float maxClimbRate = 3.0f;   // m/s
+    [SerializeField] private float maxClimbRate = 12.0f;   // m/s
     [SerializeField] private float maxDescentRate = 2.0f; // m/s
     [SerializeField] private float lateralAccel = 8.0f;   // m/s^2
     [SerializeField] private float yawRateDeg = 90f;      // deg/s
@@ -231,7 +231,7 @@ public class DroneController : MonoBehaviour
     private float HandleUpwardInput()
     {
         float up = 0f;
-        if (Input.GetKey(KeyCode.Space)) up += 4f;
+        if (Input.GetKey(KeyCode.Space)) up += 1f;
         if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.C)) up -= 1f;
         return up;
     }
@@ -241,7 +241,7 @@ public class DroneController : MonoBehaviour
         if (!armed) return;
 
         // Aplicar empuje vertical
-        Vector3 up = transform.up;
+        Vector3 up = Vector3.up;
         rb.AddForce(up * thrustCmd, ForceMode.Force);
 
         // Aplicar “aceleración” lateral como fuerza
