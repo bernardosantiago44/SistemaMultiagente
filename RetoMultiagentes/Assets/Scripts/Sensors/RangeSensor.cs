@@ -44,7 +44,7 @@ public class RangeSensor : MonoBehaviour
     
     // Internal state
     private Coroutine sensorCoroutine;
-    private float lastUpdateTime = 0f;
+    // private float lastUpdateTime = 0f;
     
     // Performance tracking
     private int readingCount = 0;
