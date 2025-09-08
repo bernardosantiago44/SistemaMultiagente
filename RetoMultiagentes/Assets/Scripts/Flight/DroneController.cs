@@ -7,45 +7,57 @@ public class DroneController : MonoBehaviour
     [Header("References")]
     [SerializeField] private Rigidbody rb;
     [SerializeField] private Transform centerOfMass;
-    [SerializeField] private FlightProfile flightProfile; // ScriptableObject (Issue #8/#19)
-    
+    [SerializeField] private FlightProfile flightProfile; // ScriptableObject
+
     [Header("Sensors")]
-    [SerializeField] private RangeSensor rangeSensor; // For terrain-relative altitude control
+    [SerializeField] private RangeSensor rangeSensor;
     [SerializeField] private bool useTerrainRelativeAltitude = false;
 
-    // --- Flags / Estado ---
     [Header("State")]
     [SerializeField] private bool armed = false;
     [SerializeField] private bool debugManualInput = true;
     private bool inFlight = false;
 
-    // --- Consignas (se usarán en issues posteriores) ---
     [Header("Setpoints")]
-    // [SerializeField, Tooltip("m/s")] private float targetForwardSpeed = 0f;
     [SerializeField, Tooltip("m")] private float targetAltitude = 1.5f;
-    // [SerializeField, Tooltip("deg")] private float targetYawDeg = 0f;
     [SerializeField] private Vector3 targetPosition = Vector3.zero;
     [SerializeField] private bool hasTargetPosition = false;
 
-    // --- Parámetros básicos (fallback si no hay FlightProfile) ---
+    // --- Parámetros (fallback si no hay FlightProfile) ---
     [Header("Fallback Params")]
     [SerializeField] private float massKg = 1.2f;
     [SerializeField] private float maxTiltDeg = 25f;
-    [SerializeField] private float maxClimbRate = 12.0f;   // m/s
-    [SerializeField] private float maxDescentRate = 2.0f; // m/s
-    [SerializeField] private float lateralAccel = 8.0f;   // m/s^2
-    [SerializeField] private float yawRateDeg = 90f;      // deg/s
+
+    // OJO: estos ahora son **aceleraciones**, no "rates"
+    [SerializeField, Tooltip("m/s^2")] private float maxClimbAccel = 5.0f;
+    [SerializeField, Tooltip("m/s^2 (valor positivo)")] private float maxDescentAccel = 3.0f;
+    [SerializeField, Tooltip("m/s^2")] private float lateralAccel = 8.0f;
+
+    // Braking (m/s^2) y ganancias (1/s)
+    [SerializeField, Tooltip("Límite de frenado vertical (m/s^2)")]
+    private float verticalBrakeAccelMax = 8f;
+    [SerializeField, Tooltip("Ganancia vertical de frenado (1/s)")]
+    private float verticalBrakeK = 6f;
+
+    [SerializeField, Tooltip("Límite de frenado horizontal (m/s^2)")]
+    private float lateralBrakeAccelMax = 5f;
+    [SerializeField, Tooltip("Ganancia horizontal de frenado (1/s)")]
+    private float lateralBrakeK = 4f;
+
+    // Umbrales para evitar microtemblores
+    [SerializeField] private float vDeadband = 0.03f;   // m/s
+
+    [SerializeField] private float yawRateDeg = 90f;
 
     // --- Internos ---
-    private float thrustCmd = 0f;     // N
-    private Vector3 bodyAccelCmd = Vector3.zero; // m/s^2 en marco mundo
+    private float thrustCmd = 0f;                 // N (Fuerza vertical total)
+    private Vector3 bodyAccelCmd = Vector3.zero;  // m/s^2 (x,z en marco mundo)
     private float lastGroundHeight = 0f;
 
-    // --- PID Controllers for Issue #8 ---
+    // --- PID (si usas FlightProfile) ---
     private AltitudeHold altitudeController;
     private VelocityController velocityController;
 
-    // --- Eventos (stubs para integrar luego) ---
     public System.Action OnArmed;
     public System.Action OnDisarmed;
 
@@ -59,46 +71,38 @@ public class DroneController : MonoBehaviour
         if (rb == null) rb = GetComponent<Rigidbody>();
         rb.useGravity = true;
         rb.mass = massKg;
-        // Asegura que el centro de masa esté bien posicionado
-        if (centerOfMass != null) rb.centerOfMass = rb.transform.InverseTransformPoint(centerOfMass.position);
 
-        // Si hay FlightProfile, sobrescribir parámetros
+        // Centro de masa
+        if (centerOfMass != null)
+            rb.centerOfMass = rb.transform.InverseTransformPoint(centerOfMass.position);
+
+        // Sobrescribe desde FlightProfile (si existe)
         if (flightProfile != null)
         {
             massKg = flightProfile.massKg;
             maxTiltDeg = flightProfile.maxTiltDeg;
-            maxClimbRate = flightProfile.maxClimbRate;
-            maxDescentRate = flightProfile.maxDescentRate;
-            lateralAccel = flightProfile.lateralAccel;
-            yawRateDeg = flightProfile.yawRateDeg;
+
+            // Si tu ScriptableObject tiene rates, mapea a aceleraciones aquí si quieres.
             rb.mass = massKg;
         }
 
-        // Armar el dron automáticamente al iniciar
+        // Ajustes de rigidez/suavizado
+        rb.linearDamping = 0.2f;
+        rb.angularDamping = 1.5f;
+
         Arm();
 
-        // Inicializar thrust para sostener el dron
+        // Fuerza para sostener peso (hover)
         float g = Physics.gravity.magnitude;
         thrustCmd = massKg * g;
 
-        // Initialize PID controllers for Issue #8
+        // Inicializa controladores si están disponibles
         if (flightProfile != null)
         {
-            // Auto-find range sensor if not assigned
-            if (rangeSensor == null)
-                rangeSensor = GetComponent<RangeSensor>();
-                
-            // Initialize altitude controller with optional range sensor
-            if (rangeSensor != null && useTerrainRelativeAltitude)
-            {
-                altitudeController = new AltitudeHold(flightProfile, rangeSensor);
-                Debug.Log("[DroneController] Altitude controller initialized with range sensor for terrain-relative control");
-            }
-            else
-            {
-                altitudeController = new AltitudeHold(flightProfile);
-            }
-            
+            if (rangeSensor == null) rangeSensor = GetComponent<RangeSensor>();
+            altitudeController = (rangeSensor != null && useTerrainRelativeAltitude)
+                ? new AltitudeHold(flightProfile, rangeSensor)
+                : new AltitudeHold(flightProfile);
             velocityController = new VelocityController(flightProfile);
         }
         else
@@ -111,37 +115,79 @@ public class DroneController : MonoBehaviour
     {
         if (!armed) return;
 
-        // Choose between manual control and automatic navigation
         if (hasTargetPosition && !debugManualInput)
-        {
-            // Automatic navigation mode
             HandleAutomaticNavigation();
-        }
         else if (debugManualInput)
-        {
-            // Manual control mode (debug)
             HandleManualInput();
-        }
     }
 
     private void HandleManualInput()
     {
-        var inputH = HandleHorizontalInput();
-        var inputV = HandleVerticalInput();
-        var up = HandleUpwardInput();
+        // --- Lectura de teclas ---
+        float inputH = 0f; if (Input.GetKey(KeyCode.A)) inputH -= 1f; if (Input.GetKey(KeyCode.D)) inputH += 1f;
+        float inputV = 0f; if (Input.GetKey(KeyCode.W)) inputV += 1f; if (Input.GetKey(KeyCode.S)) inputV -= 1f;
 
-        // Comandos simples de aceleración lateral y vertical
-        Vector3 fwd = transform.forward * (inputV * lateralAccel);
-        Vector3 right = transform.right * (inputH * lateralAccel);
-        bodyAccelCmd = fwd + right;
+        float up = 0f;
+        if (Input.GetKey(KeyCode.Space)) up += 1f;
+        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.C)) up -= 1f;
+        up = Mathf.Clamp(up, -1f, 1f);
 
-        // Tracción vertical (N): sostener peso +/- empuje por input
+        // --- Velocidades actuales ---
+        Vector3 vel = rb.linearVelocity;
+        float vY = vel.y;
+        Vector3 vH = new Vector3(vel.x, 0f, vel.z);
+
+        // --- Lateral ---
+        // Si hay input -> aceleración mandada; si NO, frenado activo hacia 0
+        if (Mathf.Abs(inputH) > 0.01f || Mathf.Abs(inputV) > 0.01f)
+        {
+            Vector3 fwd = transform.forward * (inputV * lateralAccel);
+            Vector3 right = transform.right * (inputH * lateralAccel);
+            bodyAccelCmd = fwd + right; // m/s^2
+        }
+        else
+        {
+            if (vH.sqrMagnitude > vDeadband * vDeadband)
+            {
+                // a_cmd = -K * v  (limitado)
+                Vector3 brake = -vH * lateralBrakeK;
+                bodyAccelCmd = Vector3.ClampMagnitude(brake, lateralBrakeAccelMax);
+            }
+            else
+            {
+                bodyAccelCmd = Vector3.zero;
+            }
+        }
+
+        // --- Vertical ---
         float g = Physics.gravity.magnitude;
         float hoverThrust = massKg * g;
-        float climbCmd = Mathf.Clamp(up, -1f, 1f) * (up > 0 ? maxClimbRate : maxDescentRate);
-        // Convertir rate deseado a delta de thrust aproximado
-        float climbAccel = climbCmd; // m/s -> simplificado: 1:1 como aceleración
-        thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccel);
+        float climbAccelCmd = 0f;
+
+        if (up > 0f)
+        {
+            climbAccelCmd = up * maxClimbAccel;           // subir mientras mantienes
+        }
+        else if (up < 0f)
+        {
+            climbAccelCmd = up * maxDescentAccel;         // bajar mientras mantienes (up es negativo)
+        }
+        else
+        {
+            // Sin tecla: frenado activo a vY -> 0
+            if (Mathf.Abs(vY) > vDeadband)
+            {
+                float aBrake = Mathf.Clamp(-verticalBrakeK * vY, -verticalBrakeAccelMax, verticalBrakeAccelMax);
+                climbAccelCmd = aBrake;
+            }
+            else
+            {
+                climbAccelCmd = 0f; // ya está prácticamente parado
+            }
+        }
+
+        // Fuerza total vertical (N) = hover + m * a_cmd
+        thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccelCmd);
     }
 
     private void HandleAutomaticNavigation()
@@ -151,29 +197,26 @@ public class DroneController : MonoBehaviour
         Vector3 currentPos = transform.position;
         Vector3 direction = (targetPosition - currentPos).normalized;
 
-        // Calculate horizontal movement using velocity controller
+        // Horizontal
         float horizontalDistance = Vector3.Distance(
-            new Vector3(currentPos.x, 0, currentPos.z), 
+            new Vector3(currentPos.x, 0, currentPos.z),
             new Vector3(targetPosition.x, 0, targetPosition.z)
         );
-        
-        if (horizontalDistance > 0.5f) // Dead zone
+
+        if (horizontalDistance > 0.5f)
         {
             Vector3 horizontalDirection = new Vector3(direction.x, 0, direction.z).normalized;
-            
-            // Get current horizontal speed
             Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
             float currentSpeed = horizontalVelocity.magnitude;
-            
-            // Use velocity controller if available
+
             if (velocityController != null && flightProfile != null)
             {
-                float forwardThrust = velocityController.GetForwardThrust(currentSpeed);
+                float forwardThrust = velocityController.GetForwardThrust(currentSpeed); // N
+                // a = F/m
                 bodyAccelCmd = horizontalDirection * (forwardThrust / massKg);
             }
             else
             {
-                // Fallback to simple proportional control
                 bodyAccelCmd = horizontalDirection * Mathf.Min(lateralAccel, horizontalDistance * 2f);
             }
         }
@@ -182,29 +225,25 @@ public class DroneController : MonoBehaviour
             bodyAccelCmd = Vector3.zero;
         }
 
-        // Use altitude controller for vertical control
+        // Vertical
         if (altitudeController != null && flightProfile != null)
         {
-            // Ensure target altitude in flight profile matches our target position
             if (flightProfile.targetAltitude != targetPosition.y)
-            {
                 flightProfile.targetAltitude = targetPosition.y;
-            }
-            
+
             float currentAltitude = transform.position.y;
-            thrustCmd = altitudeController.GetVerticalThrust(currentAltitude);
+            thrustCmd = altitudeController.GetVerticalThrust(currentAltitude); // N
         }
         else
         {
-            // Fallback to simple altitude control
             float altitudeError = targetPosition.y - currentPos.y;
             float g = Physics.gravity.magnitude;
             float hoverThrust = massKg * g;
-            
-            if (Mathf.Abs(altitudeError) > 0.5f) // Dead zone
+
+            if (Mathf.Abs(altitudeError) > 0.5f)
             {
-                float climbCmd = Mathf.Clamp(altitudeError * 0.5f, -maxDescentRate, maxClimbRate);
-                thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbCmd);
+                float climbAccel = Mathf.Clamp(altitudeError * 0.5f, -maxDescentAccel, maxClimbAccel);
+                thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccel);
             }
             else
             {
@@ -213,60 +252,34 @@ public class DroneController : MonoBehaviour
         }
     }
 
-    private float HandleHorizontalInput()
-    {
-        float inputH = 0f;
-        if (Input.GetKey(KeyCode.A)) inputH -= 1f;
-        if (Input.GetKey(KeyCode.D)) inputH += 1f;
-        return inputH;
-    }
-    private float HandleVerticalInput()
-    {
-        float inputV = 0f;
-        if (Input.GetKey(KeyCode.W)) inputV += 1f;
-        if (Input.GetKey(KeyCode.S)) inputV -= 1f;
-        return inputV;
-    }
-
-    private float HandleUpwardInput()
-    {
-        float up = 0f;
-        if (Input.GetKey(KeyCode.Space)) up += 1f;
-        if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.C)) up -= 1f;
-        return up;
-    }
-
     private void FixedUpdate()
     {
         if (!armed) return;
 
-        // Aplicar empuje vertical
-        Vector3 up = Vector3.up;
-        rb.AddForce(up * thrustCmd, ForceMode.Force);
+        // Vertical: fuerza en N continua (compensa gravedad sin picos)
+        rb.AddForce(Vector3.up * thrustCmd, ForceMode.Force);
 
-        // Aplicar “aceleración” lateral como fuerza
-        rb.AddForce(bodyAccelCmd * massKg, ForceMode.Force);
+        // Lateral: aceleración pura (m/s^2). Sin input -> 0 inmediatamente.
+        rb.AddForce(bodyAccelCmd, ForceMode.Acceleration);
 
-        // Limitar inclinación
         ClampTilt();
 
-        // Pequeño yaw manual para pruebas
         if (debugManualInput)
         {
             float yawInput = 0f;
             if (Input.GetKey(KeyCode.Q)) yawInput -= 1f;
             if (Input.GetKey(KeyCode.E)) yawInput += 1f;
+
             if (Mathf.Abs(yawInput) > 0.01f)
             {
-                float yawDelta = yawRateDeg * yawInput * Mathf.Deg2Rad * Time.fixedDeltaTime;
-                rb.MoveRotation(Quaternion.AngleAxis(yawDelta * Mathf.Rad2Deg, Vector3.up) * rb.rotation);
+                float yawDeltaDeg = yawRateDeg * yawInput * Time.fixedDeltaTime;
+                rb.MoveRotation(Quaternion.AngleAxis(yawDeltaDeg, Vector3.up) * rb.rotation);
             }
         }
     }
 
     private void ClampTilt()
     {
-        // Limita el ángulo de pitch/roll respecto a mundo-Y
         Vector3 fwd = Vector3.ProjectOnPlane(transform.forward, Vector3.up).normalized;
         Vector3 right = Vector3.ProjectOnPlane(transform.right, Vector3.up).normalized;
 
@@ -275,13 +288,12 @@ public class DroneController : MonoBehaviour
 
         if (Mathf.Abs(pitchDeg) > maxTiltDeg || Mathf.Abs(rollDeg) > maxTiltDeg)
         {
-            // Corrección suave volviendo hacia proyección horizontal
             Quaternion target = Quaternion.LookRotation(fwd, Vector3.up);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, 0.05f));
         }
     }
 
-    // --- API mínima para siguientes issues (stubs) ---
+    // --- API mínima ---
     public void Arm()
     {
         armed = true;
@@ -301,36 +313,24 @@ public class DroneController : MonoBehaviour
     {
         targetAltitude = targetAltMeters;
         inFlight = true;
-        
-        // Update target altitude in flight profile if available
+
         if (flightProfile != null)
-        {
             flightProfile.targetAltitude = targetAltMeters;
-        }
-        
-        // Reset PID controllers for clean takeoff
+
         ResetPIDControllers();
     }
 
-    public void LandAt(Vector3 worldPos, float radius = 2f)
-    {
-        // TODO: Issue #15 implementará aproximación y aterrizaje
-    }
+    public void LandAt(Vector3 worldPos, float radius = 2f) { /* TODO */ }
 
     public void GoTo(Vector3 worldPos)
     {
         targetPosition = worldPos;
         hasTargetPosition = true;
-        
-        // Set target altitude from the world position
         targetAltitude = worldPos.y;
-        
-        // Update target altitude in flight profile if available
+
         if (flightProfile != null)
-        {
             flightProfile.targetAltitude = worldPos.y;
-        }
-        
+
         Debug.Log($"[DroneController] Target set to: {worldPos}");
     }
 
@@ -340,20 +340,12 @@ public class DroneController : MonoBehaviour
         targetPosition = Vector3.zero;
     }
 
-    public Vector3 GetTargetPosition()
-    {
-        return targetPosition;
-    }
-
-    public bool HasTargetPosition()
-    {
-        return hasTargetPosition;
-    }
+    public Vector3 GetTargetPosition() => targetPosition;
+    public bool HasTargetPosition() => hasTargetPosition;
 
     // --- Telemetría básica ---
     public float GetAltitudeAgl()
     {
-        // Raycast al suelo para altura aproximada
         if (Physics.Raycast(transform.position, Vector3.down, out var hit, 500f))
         {
             lastGroundHeight = hit.point.y;
@@ -366,7 +358,7 @@ public class DroneController : MonoBehaviour
     public bool IsArmed() => armed;
     public bool InFlight() => inFlight;
 
-    // --- PID Controller telemetry for Issue #8 ---
+    // --- PID telemetry ---
     public float GetAltitudeError()
     {
         if (altitudeController != null)
@@ -386,75 +378,45 @@ public class DroneController : MonoBehaviour
 
     public void ResetPIDControllers()
     {
-        if (altitudeController != null)
-            altitudeController.Reset();
-        if (velocityController != null)
-            velocityController.Reset();
+        if (altitudeController != null) altitudeController.Reset();
+        if (velocityController != null) velocityController.Reset();
     }
-    
-    // --- Range Sensor integration for Issue #11 ---
-    /// <summary>
-    /// Set or change the range sensor used for terrain-relative altitude control
-    /// </summary>
+
+    // --- Range Sensor integration ---
     public void SetRangeSensor(RangeSensor sensor)
     {
         rangeSensor = sensor;
-        if (altitudeController != null)
-        {
-            altitudeController.SetRangeSensor(sensor);
-        }
+        if (altitudeController != null) altitudeController.SetRangeSensor(sensor);
     }
-    
-    /// <summary>
-    /// Enable or disable terrain-relative altitude control using the range sensor
-    /// </summary>
+
     public void SetTerrainRelativeMode(bool enabled)
     {
         useTerrainRelativeAltitude = enabled;
-        if (altitudeController != null)
-        {
-            altitudeController.SetTerrainRelativeMode(enabled);
-        }
+        if (altitudeController != null) altitudeController.SetTerrainRelativeMode(enabled);
     }
-    
-    /// <summary>
-    /// Get the current range sensor (if any)
-    /// </summary>
-    public RangeSensor GetRangeSensor()
-    {
-        return rangeSensor;
-    }
-    
-    /// <summary>
-    /// Check if terrain-relative altitude control is active
-    /// </summary>
+
+    public RangeSensor GetRangeSensor() => rangeSensor;
+
     public bool IsUsingTerrainRelativeAltitude()
     {
         return altitudeController != null && altitudeController.IsUsingTerrainRelativeMode();
     }
-    
-    /// <summary>
-    /// Get the current distance to ground from range sensor (if available)
-    /// </summary>
+
     public float GetRangeSensorDistance()
     {
-        if (rangeSensor != null)
-            return rangeSensor.GetDistance();
-        return -1f; // Invalid reading
+        if (rangeSensor != null) return rangeSensor.GetDistance();
+        return -1f;
     }
 
 #if UNITY_EDITOR
     private void OnDrawGizmosSelected()
     {
-        // Visual debug
         Gizmos.color = Color.cyan;
         Gizmos.DrawLine(transform.position, transform.position + transform.up * 0.5f);
-        
-        // Draw AGL altitude (traditional raycast method)
+
         Gizmos.color = Color.yellow;
         Gizmos.DrawRay(transform.position, Vector3.down * GetAltitudeAgl());
-        
-        // Draw range sensor info if available
+
         if (rangeSensor != null && Application.isPlaying)
         {
             float sensorDistance = rangeSensor.GetDistance();
@@ -462,8 +424,6 @@ public class DroneController : MonoBehaviour
             {
                 Gizmos.color = IsUsingTerrainRelativeAltitude() ? Color.green : Color.blue;
                 Gizmos.DrawRay(transform.position, Vector3.down * sensorDistance);
-                
-                // Label for terrain-relative mode
                 if (IsUsingTerrainRelativeAltitude())
                 {
                     Gizmos.color = Color.green;
@@ -474,5 +434,3 @@ public class DroneController : MonoBehaviour
     }
 #endif
 }
-
-
