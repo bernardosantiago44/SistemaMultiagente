@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30e256e74354d4deb830520aaa8af682, type: 3}
   m_Name: SensorProfile_Range
   m_EditorClassIdentifier: 
-  maxRange: 100
+  maxRange: 53.5
   noiseMagnitude: 0.05
-  updateFrequency: 20
+  updateFrequency: 5
   obstacleLayerMask:
     serializedVersion: 2
     m_Bits: 4294967295

@@ -4,8 +4,8 @@ using UnityEngine;
 public class FlightProfile : ScriptableObject
 {
     [Header("Basic Flight Parameters")]
-    public float massKg = 1.2f;
-    public float maxTiltDeg = 25f;
+    public float massKg = 30f;
+    public float maxTiltDeg = 20f;
     public float maxClimbRate = 3.0f;
     public float maxDescentRate = 2.0f;
     public float lateralAccel = 8.0f;

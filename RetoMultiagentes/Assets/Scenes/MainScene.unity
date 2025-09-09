@@ -193,6 +193,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       insertIndex: -1
       addedObject: {fileID: 387802766}
+    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1721914774}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       insertIndex: -1
@@ -581,21 +584,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 545628915}
   centerOfMass: {fileID: 0}
-  flightProfile: {fileID: 0}
-  rangeSensor: {fileID: 0}
+  flightProfile: {fileID: 11400000, guid: 9cbb14947d8364decb1ec497cf01058f, type: 2}
+  rangeSensor: {fileID: 1721914773}
   useTerrainRelativeAltitude: 0
   armed: 1
   debugManualInput: 1
   targetAltitude: 1.5
-  targetPosition: {x: 0, y: 0, z: 0}
-  hasTargetPosition: 0
+  targetPosition: {x: 0, y: 1, z: 0}
+  hasTargetPosition: 1
   massKg: 30
   maxTiltDeg: 20
   maxClimbAccel: 8
   maxDescentAccel: 4
   lateralAccel: 8
   verticalBrakeAccelMax: 16
-  verticalBrakeK: 6
+  verticalBrakeK: 8
   lateralBrakeAccelMax: 16
   lateralBrakeK: 6
   vDeadband: 0.03
@@ -704,6 +707,53 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d8451a10e2a3845c7927d5698530e39a, type: 3}
+--- !u!1 &1721914772
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1721914774}
+  - component: {fileID: 1721914773}
+  m_Layer: 0
+  m_Name: RangeSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1721914773
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1721914772}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30e256e74354d4deb830520aaa8af683, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sensorProfile: {fileID: 11400000, guid: 6c4416282c9644906893129ccd5c6fe6, type: 2}
+  showDebugGizmos: 1
+  logReadings: 0
+--- !u!4 &1721914774
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1721914772}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.49930736, y: -0.50069165, z: -0.5006917, w: 0.49930736}
+  m_LocalPosition: {x: 0.020613037, y: 0.0017447368, z: 0.00022522903}
+  m_LocalScale: {x: 0.01126126, y: 0.011261261, z: 0.01126126}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 22191966}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2053574898
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -828,9 +878,9 @@ SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
   - {fileID: 128637938}
-  - {fileID: 2053574898}
   - {fileID: 22191965}
   - {fileID: 1562895167}
   - {fileID: 43161129}
   - {fileID: 2132787615}
   - {fileID: 371715266}
+  - {fileID: 2053574898}
