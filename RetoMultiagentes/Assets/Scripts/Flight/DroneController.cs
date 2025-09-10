@@ -113,6 +113,7 @@ public class DroneController : MonoBehaviour
 
     void Update()
     {
+        print("Altitude AGL: " + GetAltitudeAgl().ToString("F2") + " m");
         if (!armed) return;
 
         if (hasTargetPosition && !debugManualInput)
@@ -226,19 +227,32 @@ public class DroneController : MonoBehaviour
         }
 
         // Vertical
+        float climbAccelCmd;
+        float g = Physics.gravity.magnitude;
+        float hoverThrust = massKg * g;
+
         if (altitudeController != null && flightProfile != null)
         {
-            if (flightProfile.targetAltitude != targetPosition.y)
+            float up = 0f;
+            if (flightProfile.targetAltitude > targetPosition.y)
+            {
                 flightProfile.targetAltitude = targetPosition.y;
+                up = 1f; // fuerza a subir si hay cambio de setpoint
+            }
+            else if (flightProfile.targetAltitude < targetPosition.y)
+            {
+                flightProfile.targetAltitude = targetPosition.y;
+                up = -1f; // fuerza a bajar si hay cambio de setpoint
+            }
 
             float currentAltitude = transform.position.y;
-            thrustCmd = altitudeController.GetVerticalThrust(currentAltitude); // N
+
+            climbAccelCmd = up * maxClimbAccel;
+            thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccelCmd);
         }
         else
         {
             float altitudeError = targetPosition.y - currentPos.y;
-            float g = Physics.gravity.magnitude;
-            float hoverThrust = massKg * g;
 
             if (Mathf.Abs(altitudeError) > 0.5f)
             {

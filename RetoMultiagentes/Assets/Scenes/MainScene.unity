@@ -584,13 +584,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 545628915}
   centerOfMass: {fileID: 0}
-  flightProfile: {fileID: 11400000, guid: 9cbb14947d8364decb1ec497cf01058f, type: 2}
+  flightProfile: {fileID: 0}
   rangeSensor: {fileID: 1721914773}
   useTerrainRelativeAltitude: 0
   armed: 1
-  debugManualInput: 1
+  debugManualInput: 0
   targetAltitude: 1.5
-  targetPosition: {x: 0, y: 1, z: 0}
+  targetPosition: {x: 57, y: -20, z: -151}
   hasTargetPosition: 1
   massKg: 30
   maxTiltDeg: 20
