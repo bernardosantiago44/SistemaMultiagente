@@ -61,54 +61,20 @@ public class AltitudeHold
             return 0f;
         }
 
-        float currentTime = Time.time;
-        
-        if (!initialized)
-        {
-            lastTime = currentTime;
-            initialized = true;
-            return flightProfile.massKg * Physics.gravity.magnitude; // Return hover thrust on first call
-        }
-
-        float deltaTime = currentTime - lastTime;
-        if (deltaTime <= 0f) return flightProfile.massKg * Physics.gravity.magnitude;
-
-        // Determine current altitude based on mode
-        float effectiveCurrentAltitude = GetEffectiveAltitude(currentAltitude);
-        
-        // Calculate error
-        float error = flightProfile.targetAltitude - effectiveCurrentAltitude;
-
-        // Proportional term
-        float proportional = flightProfile.altitudeKp * error;
-
-        // Integral term (with windup prevention)
-        integralSum += error * deltaTime;
-        // Clamp integral to prevent windup
-        float maxIntegral = flightProfile.maxVerticalThrust / (flightProfile.altitudeKi + 0.001f);
-        integralSum = Mathf.Clamp(integralSum, -maxIntegral, maxIntegral);
-        float integral = flightProfile.altitudeKi * integralSum;
-
-        // Derivative term
-        float derivative = flightProfile.altitudeKd * (error - previousError) / deltaTime;
-
-        // Calculate total thrust adjustment
-        float pidOutput = proportional + integral + derivative;
-
-        // Base thrust to counteract gravity (hover thrust)
+        // Empuje base (hover) = peso del dron
         float hoverThrust = flightProfile.massKg * Physics.gravity.magnitude;
 
-        // Total thrust command
-        float totalThrust = hoverThrust + pidOutput;
+        // Error de altitud
+        float error = flightProfile.targetAltitude - currentAltitude;
 
-        // Apply thrust limits
-        totalThrust = Mathf.Clamp(totalThrust, 0f, flightProfile.maxVerticalThrust);
+        // Ajuste proporcional sencillo
+        float adjustment = flightProfile.altitudeKp * error;
 
-        // Update for next iteration
-        previousError = error;
-        lastTime = currentTime;
+        // Total
+        float thrust = hoverThrust + adjustment;
 
-        return totalThrust;
+        // Clamp para que no se pase
+        return Mathf.Clamp(thrust, 0f, flightProfile.maxVerticalThrust);
     }
 
     public float GetCurrentError(float currentAltitude)
