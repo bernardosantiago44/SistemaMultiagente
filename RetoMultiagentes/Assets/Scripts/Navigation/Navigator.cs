@@ -140,6 +140,9 @@ public class Navigator : MonoBehaviour
         hasValidTarget = true;
         isNavigating = true;
         
+        // Orient drone towards target before starting navigation
+        OrientTowardsTarget(worldPosition);
+        
         // Log transit message as required
         Debug.Log("En tránsito");
         
@@ -241,6 +244,52 @@ public class Navigator : MonoBehaviour
         if (enableLogging)
         {
             Debug.Log("[Navigator] Navigation cleared");
+        }
+    }
+    
+    /// <summary>
+    /// Orient the drone towards the target position before starting navigation
+    /// </summary>
+    /// <param name="targetPosition">Target position to orient towards</param>
+    public void OrientTowardsTarget(Vector3 targetPosition)
+    {
+        // Calculate horizontal direction to target (ignore vertical component)
+        Vector3 currentPosition = transform.position;
+        Vector3 directionToTarget = new Vector3(
+            targetPosition.x - currentPosition.x,
+            0f, // Keep Y at 0 for horizontal orientation only
+            targetPosition.z - currentPosition.z
+        ).normalized;
+        
+        // Don't orient if we're too close or direction is zero
+        if (directionToTarget == Vector3.zero)
+        {
+            if (enableLogging)
+            {
+                Debug.Log("[Navigator] Skipping orientation - target too close or same position");
+            }
+            return;
+        }
+        
+        // Calculate target rotation (only yaw, preserve current pitch and roll)
+        Quaternion targetRotation = Quaternion.LookRotation(directionToTarget, Vector3.up);
+        
+        // Apply the rotation to the drone via the rigidbody
+        if (droneController != null)
+        {
+            // Get the rigidbody from drone controller
+            Rigidbody rb = droneController.GetComponent<Rigidbody>();
+            if (rb != null)
+            {
+                // Smoothly rotate towards target
+                rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRotation, 0.5f));
+                
+                if (enableLogging)
+                {
+                    float angleDifference = Quaternion.Angle(rb.rotation, targetRotation);
+                    Debug.Log($"[Navigator] Orienting towards target - angle difference: {angleDifference:F1}°");
+                }
+            }
         }
     }
     

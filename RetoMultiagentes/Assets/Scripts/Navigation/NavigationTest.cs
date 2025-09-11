@@ -83,6 +83,7 @@ public class NavigationTest : MonoBehaviour
         TestWaypointQueue();
         TestMinimumDistance();
         TestDroneControllerIntegration();
+        TestDroneOrientation();
         
         Debug.Log("[NavigationTest] Navigation System Tests Completed");
     }
@@ -244,6 +245,59 @@ public class NavigationTest : MonoBehaviour
     }
     
     /// <summary>
+    /// Tests drone orientation towards target functionality
+    /// </summary>
+    private void TestDroneOrientation()
+    {
+        Debug.Log("[NavigationTest] Testing Drone Orientation...");
+        
+        if (navigator == null || droneController == null)
+        {
+            Debug.LogError("Navigator or DroneController not found for orientation test");
+            return;
+        }
+        
+        // Store initial rotation
+        Quaternion initialRotation = droneController.transform.rotation;
+        Debug.Log($"Initial drone rotation: {initialRotation.eulerAngles}");
+        
+        // Test orientation to different directions
+        Vector3[] testTargets = {
+            transform.position + new Vector3(100f, 0f, 0f),    // East
+            transform.position + new Vector3(0f, 0f, 100f),    // North  
+            transform.position + new Vector3(-100f, 0f, 0f),   // West
+            transform.position + new Vector3(0f, 0f, -100f)    // South
+        };
+        
+        string[] directions = { "East", "North", "West", "South" };
+        
+        for (int i = 0; i < testTargets.Length; i++)
+        {
+            Vector3 target = testTargets[i];
+            
+            // Calculate expected direction
+            Vector3 expectedDirection = (target - transform.position).normalized;
+            expectedDirection.y = 0; // Only horizontal
+            
+            float expectedYaw = Mathf.Atan2(expectedDirection.x, expectedDirection.z) * Mathf.Rad2Deg;
+            
+            Debug.Log($"Testing orientation to {directions[i]} - Target: {target}, Expected Yaw: {expectedYaw:F1}°");
+            
+            // Test the orientation method directly
+            navigator.OrientTowardsTarget(target);
+            
+            // Check the rotation after orientation
+            Quaternion currentRotation = droneController.transform.rotation;
+            float currentYaw = currentRotation.eulerAngles.y;
+            float angleDifference = Quaternion.Angle(initialRotation, currentRotation);
+            
+            Debug.Log($"After orientation to {directions[i]} - Current Yaw: {currentYaw:F1}°, Angle change: {angleDifference:F1}°");
+        }
+        
+        Debug.Log("[NavigationTest] Drone orientation test completed");
+    }
+    
+    /// <summary>
     /// Context menu method to start GPS navigation test
     /// </summary>
     [ContextMenu("Test GPS Navigation")]
@@ -292,6 +346,21 @@ public class NavigationTest : MonoBehaviour
         {
             Debug.Log("[NavigationTest] Clearing navigation...");
             navigator.ClearNavigation();
+        }
+    }
+    
+    /// <summary>
+    /// Context menu method to test drone orientation
+    /// </summary>
+    [ContextMenu("Test Drone Orientation")]
+    public void TestOrientationOnly()
+    {
+        if (navigator != null)
+        {
+            Debug.Log("[NavigationTest] Testing drone orientation to test target...");
+            Vector3 orientationTarget = transform.position + new Vector3(100f, 0f, 100f);
+            navigator.OrientTowardsTarget(orientationTarget);
+            Debug.Log($"[NavigationTest] Oriented towards: {orientationTarget}");
         }
     }
 }
