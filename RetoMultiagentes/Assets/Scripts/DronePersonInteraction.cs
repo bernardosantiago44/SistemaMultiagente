@@ -13,7 +13,7 @@ public class DronePersonInteraction : MonoBehaviour
     
     [Header("Mission Configuration")]
     [SerializeField] private bool startMissionOnStart = false;
-    [SerializeField] private float visitAllSpawnPoints = false;
+    [SerializeField] private bool visitAllSpawnPoints = false;
     [SerializeField] private float droneAltitudeAboveSpawn = 10f;
     [SerializeField] private float timeAtEachPoint = 3f;
     
@@ -21,7 +21,7 @@ public class DronePersonInteraction : MonoBehaviour
     [SerializeField] private bool debugMode = true;
     
     private bool missionInProgress = false;
-    private int currentSpawnPointIndex = 0;
+    // private int currentSpawnPointIndex = 0;
 
     void Start()
     {
