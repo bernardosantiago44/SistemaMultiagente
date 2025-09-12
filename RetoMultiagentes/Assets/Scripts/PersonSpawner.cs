@@ -10,16 +10,16 @@ public class PersonSpawner : MonoBehaviour
     [SerializeField] private bool spawnOnStart = true;
     [SerializeField] private float spawnRadius = 1.0f;
     [SerializeField] private LayerMask groundLayerMask = -1;
-    
+
     [Header("Multiple Spawning")]
     [SerializeField] private bool spawnMultiplePersons = false;
     [SerializeField] private int numberOfPersonsToSpawn = 1;
     [SerializeField] private float minDistanceBetweenSpawns = 2.0f;
-    
+
     [Header("Debug")]
     [SerializeField] private bool showDebugGizmos = true;
-    
-    private Vector3 lastSpawnPosition = Vector3.zero;
+
+    Vector3 lastSpawnPosition = Vector3.zero;
 
     void Start()
     {
@@ -31,7 +31,8 @@ public class PersonSpawner : MonoBehaviour
             }
             else
             {
-                SpawnPerson();
+                // SpawnPerson();
+                SpawnPersonAtFixedPosition();
             }
         }
     }
@@ -53,6 +54,12 @@ public class PersonSpawner : MonoBehaviour
         return SpawnPersonAtPosition(spawnPosition);
     }
 
+
+    private void SpawnPersonAtFixedPosition()
+    {
+        Vector3 fixedPosition = new Vector3(144, -45, 120); // Replace with desired fixed position
+        SpawnPersonAtPosition(fixedPosition);
+    }
     /// <summary>
     /// Spawn multiple persons at different random spawn points
     /// </summary>
@@ -61,7 +68,7 @@ public class PersonSpawner : MonoBehaviour
     {
         int availableSpawnPoints = Spawnpoints.GetSpawnPointCount();
         int actualSpawnCount = Mathf.Min(numberOfPersonsToSpawn, availableSpawnPoints);
-        
+
         if (actualSpawnCount == 0)
         {
             Debug.LogError("[PersonSpawner] No spawn points available for spawning");
@@ -76,12 +83,12 @@ public class PersonSpawner : MonoBehaviour
             Vector3 spawnPosition;
             int attempts = 0;
             int maxAttempts = availableSpawnPoints * 2; // Prevent infinite loop
-            
+
             do
             {
                 spawnPosition = Spawnpoints.GetRandomSpawnPoint();
                 attempts++;
-                
+
                 if (attempts > maxAttempts)
                 {
                     Debug.LogWarning($"[PersonSpawner] Could not find suitable spawn point after {maxAttempts} attempts for person {i + 1}");
@@ -167,6 +174,11 @@ public class PersonSpawner : MonoBehaviour
         
         float distance = Vector3.Distance(position, lastSpawnPosition);
         return distance < minDistanceBetweenSpawns;
+    }
+
+    public Vector3 GetLastSpawnedPersonPosition()
+    {
+        return lastSpawnPosition;
     }
 
     /// <summary>

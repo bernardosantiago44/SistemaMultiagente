@@ -11,10 +11,12 @@ public class Navigator : MonoBehaviour
     [Header("References")]
     [SerializeField] private DroneController droneController;
     [SerializeField] private WaypointQueue waypointQueue;
+    [SerializeField] private PersonSpawner personSpawner;
     
     [Header("Navigation Configuration")]
     [SerializeField] private float minimumDistance = 150f; // meters - requirement from issue
     [SerializeField] private float targetReachThreshold = 5.0f; // meters
+    [SerializeField] private float personFoundThreshold = 20.0f; // meters
     //[SerializeField] private float navigationSpeed = 10f; // m/s
     [SerializeField] private float targetAltitude = 50f; // meters AGL
     
@@ -71,6 +73,7 @@ public class Navigator : MonoBehaviour
         if (!isNavigating || !hasValidTarget) return;
         
         UpdateDistanceToTarget();
+        HasFoundPerson();
         CheckTargetReached();
         UpdateNavigationLogging();
     }
@@ -286,6 +289,23 @@ public class Navigator : MonoBehaviour
             }
         }
     }
+
+    private void HasFoundPerson()
+    {
+        Vector3 personPosition = personSpawner.GetLastSpawnedPersonPosition();
+        Vector3 personPositionIgnoringY = new Vector3(personPosition.x, 0, personPosition.z);
+        float distanceToPerson = Vector3.Distance(personPositionIgnoringY, transform.position);
+        if (distanceToPerson <= personFoundThreshold)
+        {
+            if (enableLogging)
+            {
+                Debug.Log($"[Navigator] Person found at: {personSpawner.GetLastSpawnedPersonPosition()} (distance: {distanceToPerson:F2}m)");
+            }
+
+            ClearNavigation();
+            GoToWorldPosition(new Vector3(personPosition.x + 4, personPosition.y + 10, personPosition.z - 3));
+        }
+    }
     
     /// <summary>
     /// Update navigation logging
@@ -293,7 +313,7 @@ public class Navigator : MonoBehaviour
     private void UpdateNavigationLogging()
     {
         if (!enableLogging) return;
-        
+
         // Log progress periodically
         float distanceTraveled = Vector3.Distance(transform.position, lastPosition);
         if (distanceTraveled > 10f) // Log every 10 meters of movement

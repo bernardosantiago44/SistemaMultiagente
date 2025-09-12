@@ -696,8 +696,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   droneController: {fileID: 545628914}
   waypointQueue: {fileID: 526866766}
+  personSpawner: {fileID: 1709380704}
   minimumDistance: 150
   targetReachThreshold: 5
+  personFoundThreshold: 20
   targetAltitude: 50
   gpsOrigin: {x: 19.432608, y: -99.13321}
   isNavigating: 1
@@ -706,6 +708,42 @@ MonoBehaviour:
   distanceToTarget: 0
   enableLogging: 1
   visualizeNavigation: 1
+--- !u!1 &627186945
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 627186946}
+  m_Layer: 0
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &627186946
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 627186945}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 144.77, y: -45.970596, z: 119.1393}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1035986445 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d8451a10e2a3845c7927d5698530e39a, type: 3}
+  m_PrefabInstance: {fileID: 1562895167}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1562895167
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -783,6 +821,60 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d8451a10e2a3845c7927d5698530e39a, type: 3}
+--- !u!1 &1709380703
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1709380705}
+  - component: {fileID: 1709380704}
+  m_Layer: 0
+  m_Name: PersonSpawner
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1709380704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709380703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5157d27778c8a4e58bb315d43616afbc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  personPrefab: {fileID: 1035986445}
+  spawnOnStart: 1
+  spawnRadius: 1
+  groundLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  spawnMultiplePersons: 0
+  numberOfPersonsToSpawn: 1
+  minDistanceBetweenSpawns: 2
+  showDebugGizmos: 1
+--- !u!4 &1709380705
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1709380703}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -11.303539, y: 63.65905, z: 81.363396}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1721914772
 GameObject:
   m_ObjectHideFlags: 0
@@ -961,3 +1053,5 @@ SceneRoots:
   - {fileID: 371715266}
   - {fileID: 2053574898}
   - {fileID: 526866767}
+  - {fileID: 1709380705}
+  - {fileID: 627186946}
