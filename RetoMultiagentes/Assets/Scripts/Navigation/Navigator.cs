@@ -15,8 +15,8 @@ public class Navigator : MonoBehaviour
     
     [Header("Navigation Configuration")]
     [SerializeField] private float minimumDistance = 150f; // meters - requirement from issue
-    [SerializeField] private float targetReachThreshold = 5.0f; // meters
-    [SerializeField] private float personFoundThreshold = 20.0f; // meters
+    [SerializeField] private float targetReachThreshold = 9.0f; // meters
+    [SerializeField] private float personFoundThreshold = 30.0f; // meters
     //[SerializeField] private float navigationSpeed = 10f; // m/s
     [SerializeField] private float targetAltitude = 50f; // meters AGL
     
@@ -91,8 +91,9 @@ public class Navigator : MonoBehaviour
             {
                 Debug.Log($"[Navigator] Mission loaded, starting navigation to: {mission.GpsCoordinates}");
             }
-            
-            GoToWorldPosition(mission.GpsCoordinates);
+
+            Vector3 startOfMission = new Vector3(144, 10, 130);
+            GoToWorldPosition(startOfMission);
         }
     }
     
@@ -126,7 +127,7 @@ public class Navigator : MonoBehaviour
     /// Navigate to world position
     /// </summary>
     /// <param name="worldPosition">Target world position</param>
-    public void GoToWorldPosition(Vector3 worldPosition)
+    public void GoToWorldPosition(Vector3 worldPosition, bool movesCamera = true)
     {
         // Check minimum distance requirement
         float distance = Vector3.Distance(transform.position, worldPosition);
@@ -152,7 +153,7 @@ public class Navigator : MonoBehaviour
         }
         
         // Set target in drone controller
-        droneController.GoTo(worldPosition);
+        droneController.GoTo(worldPosition, movesCamera);
         
         // Trigger navigation started event
         OnNavigationStarted?.Invoke(worldPosition);
@@ -302,8 +303,9 @@ public class Navigator : MonoBehaviour
                 Debug.Log($"[Navigator] Person found at: {personSpawner.GetLastSpawnedPersonPosition()} (distance: {distanceToPerson:F2}m)");
             }
 
+            this.isNavigating = false;
             ClearNavigation();
-            GoToWorldPosition(new Vector3(personPosition.x + 4, personPosition.y + 10, personPosition.z - 3));
+            GoToWorldPosition(new Vector3(personPosition.x + 4, personPosition.y + 10, personPosition.z - 3), movesCamera: false);
         }
     }
     

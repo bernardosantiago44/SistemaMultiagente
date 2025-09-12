@@ -18,7 +18,7 @@ MonoBehaviour:
   maxDescentRate: 2
   lateralAccel: 20
   yawRateDeg: 90
-  targetAltitude: 50
+  targetAltitude: 9.49
   altitudeKp: 1
   altitudeKi: 0.1
   altitudeKd: 0.5

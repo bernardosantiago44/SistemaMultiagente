@@ -141,15 +141,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -37.24
+      value: 144.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -38.52
+      value: 10.7
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 111.23
+      value: 130.2
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       propertyPath: m_LocalRotation.w
@@ -737,13 +737,11 @@ MonoBehaviour:
   massKg: 30
   maxTiltDeg: 20
   maxClimbAccel: 8
-  maxDescentAccel: 4
+  maxDescentAccel: 8
   lateralAccel: 8
-  verticalBrakeAccelMax: 16
-  verticalBrakeK: 8
-  lateralBrakeAccelMax: 16
-  lateralBrakeK: 6
-  vDeadband: 0.03
+  lateralBrakeAccelMax: 32
+  lateralBrakeK: 25
+  vDeadband: 10
   yawRateDeg: 55
 --- !u!54 &545628915
 Rigidbody:
@@ -788,11 +786,11 @@ MonoBehaviour:
   waypointQueue: {fileID: 526866766}
   personSpawner: {fileID: 1709380704}
   minimumDistance: 150
-  targetReachThreshold: 5
-  personFoundThreshold: 20
+  targetReachThreshold: 9
+  personFoundThreshold: 30
   targetAltitude: 50
   gpsOrigin: {x: 19.432608, y: -99.13321}
-  isNavigating: 1
+  isNavigating: 0
   currentTarget: {x: 0, y: 0, z: 0}
   currentTargetGps: {x: 0, y: 0}
   distanceToTarget: 0
@@ -860,7 +858,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d8451a10e2a3845c7927d5698530e39a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -48.76613
+      value: -72.1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: d8451a10e2a3845c7927d5698530e39a, type: 3}
       propertyPath: m_LocalPosition.z

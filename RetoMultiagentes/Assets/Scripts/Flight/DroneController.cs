@@ -34,18 +34,18 @@ public class DroneController : MonoBehaviour
     [SerializeField, Tooltip("m/s^2")] private float lateralAccel = 8.0f;
 
     // Braking (m/s^2) y ganancias (1/s)
-    [SerializeField, Tooltip("Límite de frenado vertical (m/s^2)")]
-    private float verticalBrakeAccelMax = 8f;
-    [SerializeField, Tooltip("Ganancia vertical de frenado (1/s)")]
-    private float verticalBrakeK = 6f;
+    // [SerializeField, Tooltip("Límite de frenado vertical (m/s^2)")]
+    private float verticalBrakeAccelMax = 35f;
+    // [SerializeField, Tooltip("Ganancia vertical de frenado (1/s)")]
+    private float verticalBrakeK = 20f;
 
     [SerializeField, Tooltip("Límite de frenado horizontal (m/s^2)")]
-    private float lateralBrakeAccelMax = 5f;
+    private float lateralBrakeAccelMax = 50f;
     [SerializeField, Tooltip("Ganancia horizontal de frenado (1/s)")]
-    private float lateralBrakeK = 4f;
+    private float lateralBrakeK = 35f;
 
     // Umbrales para evitar microtemblores
-    [SerializeField] private float vDeadband = 0.03f;   // m/s
+    [SerializeField] private float vDeadband = 0.01f;   // m/s
 
     [SerializeField] private float yawRateDeg = 90f;
 
@@ -60,6 +60,8 @@ public class DroneController : MonoBehaviour
 
     public System.Action OnArmed;
     public System.Action OnDisarmed;
+
+    private bool movesCamera = true;
 
     private void Reset()
     {
@@ -204,7 +206,7 @@ public class DroneController : MonoBehaviour
             new Vector3(targetPosition.x, 0, targetPosition.z)
         );
 
-        if (horizontalDistance > 0.5f)
+        if (horizontalDistance > 10f)
         {
             Vector3 horizontalDirection = new Vector3(direction.x, 0, direction.z).normalized;
             Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
@@ -213,6 +215,7 @@ public class DroneController : MonoBehaviour
             if (velocityController != null && flightProfile != null)
             {
                 float forwardThrust = velocityController.GetForwardThrust(currentSpeed); // N
+                if (horizontalDistance < 100f && horizontalVelocity.magnitude > 5f) forwardThrust = 5f;
                 // a = F/m
                 bodyAccelCmd = horizontalDirection * (forwardThrust / massKg);
             }
@@ -223,49 +226,54 @@ public class DroneController : MonoBehaviour
         }
         else
         {
-            bodyAccelCmd = Vector3.zero;
-        }
-
-        // Vertical
-        float climbAccelCmd;
-        float g = Physics.gravity.magnitude;
-        float hoverThrust = massKg * g;
-
-        if (altitudeController != null && flightProfile != null)
-        {
-            float up = 0f;
-            if (flightProfile.targetAltitude > currentPos.y)
+            // Aplicar frenado activo más agresivo cuando está cerca del objetivo
+            Vector3 horizontalVelocity = new Vector3(rb.linearVelocity.x, 0, rb.linearVelocity.z);
+            if (horizontalVelocity.sqrMagnitude > 5f)
             {
-                flightProfile.targetAltitude = targetPosition.y;
-                up = 1f; // fuerza a subir si hay cambio de setpoint
-            }
-            else if (flightProfile.targetAltitude < currentPos.y)
-            {
-                flightProfile.targetAltitude = targetPosition.y;
-                up = -1f; // fuerza a bajar si hay cambio de setpoint
-            }
-
-            float currentAltitude = transform.position.y;
-
-            climbAccelCmd = up * maxClimbAccel;
-            thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccelCmd);
-        }
-        else
-        {
-            float altitudeError = targetPosition.y - currentPos.y;
-
-            if (Mathf.Abs(altitudeError) > 0.5f)
-            {
-                float climbAccel = Mathf.Clamp(altitudeError * 0.5f, -maxDescentAccel, maxClimbAccel);
-                thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccel);
+                Vector3 brake = -horizontalVelocity * lateralBrakeK * 35f;
+                bodyAccelCmd = Vector3.ClampMagnitude(brake, lateralBrakeAccelMax);
             }
             else
             {
-                thrustCmd = hoverThrust;
+                bodyAccelCmd = Vector3.zero;
             }
         }
 
+        // Vertical
+        float g = Physics.gravity.magnitude;
+        float hoverThrust = massKg * g;
+        float climbAccelCmd = 0f;
+
+        // Sistema de control de altura sin oscilaciones
+        float altitudeError = targetPosition.y - transform.position.y;
+        float vY = rb.linearVelocity.y;
+
+        if (Mathf.Abs(altitudeError) > 0.2f)
+        {
+            // Hay error significativo de altura - aplicar corrección proporcional suave
+            float targetClimbRate = Mathf.Clamp(altitudeError * 1.2f, -maxDescentAccel, maxClimbAccel);
+            climbAccelCmd = targetClimbRate;
+        }
+        else
+        {
+            // Cerca del objetivo - mantener hover estable sin frenado agresivo
+            // Solo aplicar frenado suave si la velocidad vertical es muy alta
+            if (Mathf.Abs(vY) > 0.5f) // Umbral más alto para evitar microtemblores
+            {
+                float aBrake = Mathf.Clamp(-verticalBrakeK * 0.3f * vY, -verticalBrakeAccelMax * 0.3f, verticalBrakeAccelMax * 0.3f);
+                climbAccelCmd = aBrake;
+            }
+            else
+            {
+                climbAccelCmd = 0f; // Mantener hover estable
+            }
+        }
+
+        thrustCmd = Mathf.Max(0f, hoverThrust + massKg * climbAccelCmd);
+        if (GetAltitudeAgl() < 1f && climbAccelCmd < 0f) thrustCmd = hoverThrust;
+
         // Camera angle
+        if (!movesCamera) return;
         Vector3 lookDir = (targetPosition - currentPos).normalized;
         lookDir.y = 0f;
         // Only rotate if there's significant horizontal distance
@@ -349,7 +357,7 @@ public class DroneController : MonoBehaviour
 
     public void LandAt(Vector3 worldPos, float radius = 2f) { /* TODO */ }
 
-    public void GoTo(Vector3 worldPos)
+    public void GoTo(Vector3 worldPos, bool movesCamera = true)
     {
         targetPosition = worldPos;
         hasTargetPosition = true;
