@@ -234,12 +234,12 @@ public class DroneController : MonoBehaviour
         if (altitudeController != null && flightProfile != null)
         {
             float up = 0f;
-            if (flightProfile.targetAltitude > targetPosition.y)
+            if (flightProfile.targetAltitude > currentPos.y)
             {
                 flightProfile.targetAltitude = targetPosition.y;
                 up = 1f; // fuerza a subir si hay cambio de setpoint
             }
-            else if (flightProfile.targetAltitude < targetPosition.y)
+            else if (flightProfile.targetAltitude < currentPos.y)
             {
                 flightProfile.targetAltitude = targetPosition.y;
                 up = -1f; // fuerza a bajar si hay cambio de setpoint
@@ -304,6 +304,32 @@ public class DroneController : MonoBehaviour
         {
             Quaternion target = Quaternion.LookRotation(fwd, Vector3.up);
             rb.MoveRotation(Quaternion.Slerp(rb.rotation, target, 0.05f));
+        }
+    }
+
+    /// <summary>
+    /// Orient the drone to face a target position
+    /// </summary>
+    /// <param name="targetPosition">Target world position to face</param>
+    public void OrientTowards(Vector3 targetPosition)
+    {
+        if (!armed) return;
+        
+        Vector3 currentPos = transform.position;
+        Vector3 direction = (targetPosition - currentPos).normalized;
+        
+        // Only rotate around Y axis (yaw), ignore vertical direction
+        Vector3 horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+        
+        if (horizontalDirection.magnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(horizontalDirection, Vector3.up);
+            rb.MoveRotation(targetRotation);
+            
+            if (debugManualInput)
+            {
+                Debug.Log($"[DroneController] Oriented towards: {targetPosition}");
+            }
         }
     }
 

@@ -12,19 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a6f6577cd48134a4aab15c0a3b8ea8c3, type: 3}
   m_Name: FlightProfile
   m_EditorClassIdentifier: 
-  massKg: 30
-  maxTiltDeg: 20
+  massKg: 5
+  maxTiltDeg: 30
   maxClimbRate: 3
   maxDescentRate: 2
-  lateralAccel: 8
+  lateralAccel: 20
   yawRateDeg: 90
-  targetAltitude: 20
+  targetAltitude: 50
   altitudeKp: 1
   altitudeKi: 0.1
   altitudeKd: 0.5
   maxVerticalThrust: 20
-  targetSpeed: 10
-  velocityKp: 1
-  velocityKi: 0.1
-  velocityKd: 0.5
-  maxForwardThrust: 15
+  targetSpeed: 30
+  velocityKp: 2
+  velocityKi: 1
+  velocityKd: 2
+  maxForwardThrust: 25

@@ -5,8 +5,57 @@ using UnityEngine;
 /// Queue system for managing waypoints in navigation
 /// Provides functionality to add, retrieve, and manage waypoints for drone navigation
 /// </summary>
-public class WaypointQueue : MonoBehaviour
-{
+public class WaypointQueue : MonoBehaviour {
+    /// <summary>
+    /// Lee los waypoints desde un archivo JSON y los agrega a la lista de waypoints
+    /// El archivo debe estar en Resources y tener formato: [{"x":0,"y":0,"z":0}, ...]
+    /// </summary>
+    private void LoadWaypointsFromJson(string fileName = "drone_route")
+    {
+        string path = System.IO.Path.Combine(Application.streamingAssetsPath, fileName + ".json");
+        if (!System.IO.File.Exists(path))
+        {
+            Debug.LogWarning($"[WaypointQueue] No se encontró el archivo JSON: {path}");
+            return;
+        }
+        try
+        {
+            string jsonText = System.IO.File.ReadAllText(path);
+            WaypointListWrapper wrapper = JsonUtility.FromJson<WaypointListWrapper>(jsonText);
+            if (wrapper != null && wrapper.waypoints != null)
+            {
+                foreach (var wpData in wrapper.waypoints)
+                {
+                    Vector3 wp = new Vector3(wpData.x, wpData.y, wpData.z);
+                    waypoints.Add(wp);
+                    waypointQueue.Enqueue(wp);
+                }
+                if (logWaypointOperations)
+                    Debug.Log($"[WaypointQueue] {wrapper.waypoints.Length} waypoints cargados desde JSON");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debug.LogError($"[WaypointQueue] Error al leer JSON: {ex.Message}");
+        }
+    }
+
+    [System.Serializable]
+    public class WaypointListWrapper
+    {
+        public WaypointData[] waypoints;
+    }
+
+    [System.Serializable]
+    public class WaypointData
+    {
+        public int id;
+        public float x;
+        public float y;
+        public float z;
+        public string label;
+    }
+
     [Header("Waypoint Configuration")]
     [SerializeField] private List<Vector3> waypoints = new List<Vector3>();
     [SerializeField] private bool autoRemoveReached = true;
@@ -18,14 +67,17 @@ public class WaypointQueue : MonoBehaviour
     
     private Queue<Vector3> waypointQueue = new Queue<Vector3>();
     private Vector3? currentTarget = null;
-    
+
     void Awake()
     {
-        // Initialize queue with serialized waypoints
+        // Inicializa la cola con los waypoints serializados
         foreach (var waypoint in waypoints)
         {
             waypointQueue.Enqueue(waypoint);
         }
+
+        // Cargar waypoints desde JSON si existe
+        LoadWaypointsFromJson();
     }
     
     /// <summary>

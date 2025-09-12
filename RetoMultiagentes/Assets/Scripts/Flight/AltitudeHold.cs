@@ -6,7 +6,7 @@ public class AltitudeHold
     private float previousError = 0f;
     private float integralSum = 0f;
     private float lastTime;
-    private bool initialized = false;
+    // private bool initialized = false;
     
     // Range sensor integration for terrain-relative altitude control
     private RangeSensor rangeSensor;
@@ -33,7 +33,7 @@ public class AltitudeHold
     {
         previousError = 0f;
         integralSum = 0f;
-        initialized = false;
+    // initialized = false;
     }
     
     /// <summary>

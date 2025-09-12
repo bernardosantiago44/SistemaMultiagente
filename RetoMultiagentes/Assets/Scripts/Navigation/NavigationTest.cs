@@ -337,6 +337,41 @@ public class NavigationTest : MonoBehaviour
     }
     
     /// <summary>
+    /// Context menu method to test orientation functionality
+    /// </summary>
+    [ContextMenu("Test Orientation")]
+    public void TestOrientationFunctionality()
+    {
+        if (navigator != null && droneController != null)
+        {
+            Debug.Log("[NavigationTest] Testing orientation functionality...");
+            
+            // Get current rotation for comparison
+            Vector3 currentEuler = transform.eulerAngles;
+            Debug.Log($"Current drone rotation: {currentEuler}");
+            
+            // Test orientation towards a target 45 degrees to the right
+            Vector3 rightTarget = transform.position + transform.right * 100f;
+            Debug.Log($"Orienting towards right target: {rightTarget}");
+            droneController.OrientTowards(rightTarget);
+            
+            // Log the new rotation after orientation
+            Vector3 newEuler = transform.eulerAngles;
+            Debug.Log($"New drone rotation after orientation: {newEuler}");
+            
+            // Calculate the direction we should be facing
+            Vector3 expectedDirection = (rightTarget - transform.position).normalized;
+            Vector3 expectedDirectionHorizontal = new Vector3(expectedDirection.x, 0f, expectedDirection.z).normalized;
+            Debug.Log($"Expected direction: {expectedDirectionHorizontal}");
+            Debug.Log($"Current forward direction: {transform.forward}");
+        }
+        else
+        {
+            Debug.LogError("[NavigationTest] Navigator or DroneController not found for orientation test");
+        }
+    }
+
+    /// <summary>
     /// Context menu method to clear navigation
     /// </summary>
     [ContextMenu("Clear Navigation")]
