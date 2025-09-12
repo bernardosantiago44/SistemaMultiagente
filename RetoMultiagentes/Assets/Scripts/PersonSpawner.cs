@@ -31,8 +31,7 @@ public class PersonSpawner : MonoBehaviour
             }
             else
             {
-                // SpawnPerson();
-                SpawnPersonAtFixedPosition();
+                SpawnPerson();
             }
         }
     }
@@ -54,12 +53,6 @@ public class PersonSpawner : MonoBehaviour
         return SpawnPersonAtPosition(spawnPosition);
     }
 
-
-    private void SpawnPersonAtFixedPosition()
-    {
-        Vector3 fixedPosition = new Vector3(144, -45, 120); // Replace with desired fixed position
-        SpawnPersonAtPosition(fixedPosition);
-    }
     /// <summary>
     /// Spawn multiple persons at different random spawn points
     /// </summary>

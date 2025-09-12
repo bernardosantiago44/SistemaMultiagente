@@ -92,7 +92,7 @@ public class Navigator : MonoBehaviour
                 Debug.Log($"[Navigator] Mission loaded, starting navigation to: {mission.GpsCoordinates}");
             }
             
-            GoToGpsCoordinates(mission.GpsCoordinates);
+            GoToWorldPosition(mission.GpsCoordinates);
         }
     }
     

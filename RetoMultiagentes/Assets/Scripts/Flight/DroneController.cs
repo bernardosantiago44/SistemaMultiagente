@@ -264,6 +264,19 @@ public class DroneController : MonoBehaviour
                 thrustCmd = hoverThrust;
             }
         }
+
+        // Camera angle
+        Vector3 lookDir = (targetPosition - currentPos).normalized;
+        lookDir.y = 0f;
+        // Only rotate if there's significant horizontal distance
+        // Only rotate Z axis, lock other axis in position
+        if (horizontalDistance > 1f && lookDir.sqrMagnitude > 0.01f)
+        {
+            // Fijar X en -90°, Y según yaw, Z en 0°
+            float targetYaw = Mathf.Atan2(lookDir.x, lookDir.z) * Mathf.Rad2Deg;
+            Quaternion targetRot = Quaternion.Euler(-90f, targetYaw - 90f, 0f);
+            rb.MoveRotation(Quaternion.Slerp(rb.rotation, targetRot, 0.05f));
+        }
     }
 
     private void FixedUpdate()
