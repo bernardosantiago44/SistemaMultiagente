@@ -234,12 +234,12 @@ public class DroneController : MonoBehaviour
         if (altitudeController != null && flightProfile != null)
         {
             float up = 0f;
-            if (flightProfile.targetAltitude > targetPosition.y)
+            if (flightProfile.targetAltitude > currentPos.y)
             {
                 flightProfile.targetAltitude = targetPosition.y;
                 up = 1f; // fuerza a subir si hay cambio de setpoint
             }
-            else if (flightProfile.targetAltitude < targetPosition.y)
+            else if (flightProfile.targetAltitude < currentPos.y)
             {
                 flightProfile.targetAltitude = targetPosition.y;
                 up = -1f; // fuerza a bajar si hay cambio de setpoint

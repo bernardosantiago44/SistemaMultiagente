@@ -203,6 +203,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
       insertIndex: -1
       addedObject: {fileID: 545628914}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 545628918}
   m_SourcePrefab: {fileID: 100100000, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
 --- !u!4 &22191966 stripped
 Transform:
@@ -565,6 +568,55 @@ Transform:
   m_Children: []
   m_Father: {fileID: 22191966}
   m_LocalEulerAnglesHint: {x: -194.922, y: 0, z: -180}
+--- !u!1 &526866765
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 526866767}
+  - component: {fileID: 526866766}
+  m_Layer: 0
+  m_Name: WaypointQueue
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &526866766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526866765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  waypoints: []
+  autoRemoveReached: 1
+  reachThreshold: 2
+  logWaypointOperations: 1
+  visualizeWaypoints: 1
+--- !u!4 &526866767
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 526866765}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 94.251656, y: -48.16347, z: 64.82373}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &545628911 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 32b3f17c5f1724dbfa3b965904166364, type: 3}
@@ -584,14 +636,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rb: {fileID: 545628915}
   centerOfMass: {fileID: 0}
-  flightProfile: {fileID: 0}
+  flightProfile: {fileID: 11400000, guid: 9cbb14947d8364decb1ec497cf01058f, type: 2}
   rangeSensor: {fileID: 1721914773}
   useTerrainRelativeAltitude: 0
   armed: 1
   debugManualInput: 0
   targetAltitude: 1.5
   targetPosition: {x: 57, y: -20, z: -151}
-  hasTargetPosition: 1
+  hasTargetPosition: 0
   massKg: 30
   maxTiltDeg: 20
   maxClimbAccel: 8
@@ -630,6 +682,30 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &545628918
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 545628911}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c8e1b2c9d4e5f6a8b9c0d1e2f3a4b5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  droneController: {fileID: 545628914}
+  waypointQueue: {fileID: 526866766}
+  minimumDistance: 150
+  targetReachThreshold: 5
+  targetAltitude: 50
+  gpsOrigin: {x: 19.432608, y: -99.13321}
+  isNavigating: 1
+  currentTarget: {x: 0, y: 0, z: 0}
+  currentTargetGps: {x: 0, y: 0}
+  distanceToTarget: 0
+  enableLogging: 1
+  visualizeNavigation: 1
 --- !u!1001 &1562895167
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -884,3 +960,4 @@ SceneRoots:
   - {fileID: 2132787615}
   - {fileID: 371715266}
   - {fileID: 2053574898}
+  - {fileID: 526866767}
