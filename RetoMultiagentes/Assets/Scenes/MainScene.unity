@@ -521,53 +521,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 33.5, y: 180.57, z: 0}
---- !u!1 &371715264
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 371715266}
-  - component: {fileID: 371715265}
-  m_Layer: 0
-  m_Name: GPSMapperTest
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &371715265
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 371715264}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c4d5e6f7890a1b2cdef345678901abc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  runTestsOnStart: 1
-  worldOrigin: {fileID: 0}
-  testGpsCoords: {x: 40.758896, y: -73.98513}
---- !u!4 &371715266
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 371715264}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.7171147, y: 10.692907, z: 41.885803}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &387802762
 GameObject:
   m_ObjectHideFlags: 0
@@ -1187,7 +1140,6 @@ SceneRoots:
   - {fileID: 1562895167}
   - {fileID: 43161129}
   - {fileID: 2132787615}
-  - {fileID: 371715266}
   - {fileID: 2053574898}
   - {fileID: 526866767}
   - {fileID: 1709380705}
