@@ -307,6 +307,32 @@ public class DroneController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Orient the drone to face a target position
+    /// </summary>
+    /// <param name="targetPosition">Target world position to face</param>
+    public void OrientTowards(Vector3 targetPosition)
+    {
+        if (!armed) return;
+        
+        Vector3 currentPos = transform.position;
+        Vector3 direction = (targetPosition - currentPos).normalized;
+        
+        // Only rotate around Y axis (yaw), ignore vertical direction
+        Vector3 horizontalDirection = new Vector3(direction.x, 0f, direction.z).normalized;
+        
+        if (horizontalDirection.magnitude > 0.01f)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(horizontalDirection, Vector3.up);
+            rb.MoveRotation(targetRotation);
+            
+            if (debugManualInput)
+            {
+                Debug.Log($"[DroneController] Oriented towards: {targetPosition}");
+            }
+        }
+    }
+
     // --- API mínima ---
     public void Arm()
     {

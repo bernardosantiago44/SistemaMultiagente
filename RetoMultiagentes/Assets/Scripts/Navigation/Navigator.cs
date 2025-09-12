@@ -123,6 +123,23 @@ public class Navigator : MonoBehaviour
     }
     
     /// <summary>
+    /// Orient the drone towards a target position before navigation
+    /// </summary>
+    /// <param name="targetPosition">Target position to orient towards</param>
+    private void OrientTowards(Vector3 targetPosition)
+    {
+        if (droneController != null)
+        {
+            droneController.OrientTowards(targetPosition);
+            
+            if (enableLogging)
+            {
+                Debug.Log($"[Navigator] Orienting drone towards: {targetPosition}");
+            }
+        }
+    }
+
+    /// <summary>
     /// Navigate to world position
     /// </summary>
     /// <param name="worldPosition">Target world position</param>
@@ -138,6 +155,9 @@ public class Navigator : MonoBehaviour
                 Debug.LogWarning($"[Navigator] Target distance ({distance:F1}m) is less than minimum required ({minimumDistance}m). Proceeding anyway.");
             }
         }
+        
+        // Orient the drone towards the target before starting navigation
+        OrientTowards(worldPosition);
         
         currentTarget = worldPosition;
         hasValidTarget = true;
